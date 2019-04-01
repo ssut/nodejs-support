@@ -106,7 +106,7 @@ class ImmutableArray<T> extends JavaWrappable {
    * @return {ImmutableArray.<T>}
    * @template {T}
    */
-  constructor(items: T[], ...type: any[]) {
+  constructor(items: T[], ...type: string[]) {
     super();
     typeCheck(items, ...type);
 
@@ -442,11 +442,11 @@ export class Entity extends ImmutableArray<Morpheme> {
     morphemes: Morpheme[];
     originalLabel?: string;
   }) {
-    super(value.morphemes, 'Morpheme' as any);
-
     typeCheck([value.surface, value.fineLabel], 'string');
     typeCheck([value.label], 'string', 'CoarseEntityType');
     typeCheck([value.originalLabel], 'undefined', 'string');
+
+    super(value.morphemes, 'Morpheme' as any);
 
     writeonlyonce(this, undefined, 'corefGroup');
 
@@ -652,10 +652,10 @@ export class Tree extends ImmutableArray<Tree> {
     terminal: Word;
     children: Tree[];
   }) {
-    super(value.children, 'SyntaxTree' as any, 'Tree' as any);
-
     typeCheck([value.label], 'string');
     typeCheck([value.terminal], 'undefined', 'Word');
+    super(value.children, 'SyntaxTree', 'Tree');
+
     writeonlyonce(this, undefined, 'parent');
 
     this._label = value.label;
@@ -820,13 +820,13 @@ export class SyntaxTree extends Tree {
     children?: Tree[];
     originalLabel?: string;
   }) {
-    super(value as any);
-
     typeCheck([value.label], 'string', 'PhraseTag');
     typeCheck([value.originalLabel], 'undefined', 'string');
 
     value.children = value.children || [];
     value.label = (value.label instanceof PhraseTag) ? value.label.tagname : value.label;
+
+    super(value as any);
 
     this._originalLabel = value.originalLabel;
 
@@ -898,11 +898,10 @@ export class DAGEdge extends JavaWrappable {
     dest: Word;
     label: string;
   }) {
-    super();
-
     typeCheck([value.src], 'undefined', 'Word');
     typeCheck([value.dest], 'Word');
     typeCheck([value.label], 'undefined', 'string');
+    super();
 
     this._src = value.src;
     this._dest = value.dest;
@@ -1023,8 +1022,6 @@ export class DepEdge extends DAGEdge {
     dest?: any;
     label?: any;
   }) {
-    super(value as any);
-
     typeCheck([value.type], 'string', 'PhraseTag');
     typeCheck([value.depType], 'undefined', 'string', 'DependencyTag');
     typeCheck([value.originalLabel], 'undefined', 'string');
@@ -1035,6 +1032,7 @@ export class DepEdge extends DAGEdge {
     value.src = value.governor;
     value.dest = value.dependent;
     value.label = value.depType;
+    super(value as any);
 
     this._type = value.type;
     this._originalLabel = value.originalLabel;
