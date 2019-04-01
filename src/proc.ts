@@ -351,14 +351,15 @@ class CanAnalyzeProperty extends Function {
   /**
    * 문단(들)을 분석합니다. (Asynchronous)
    *
-   * @param {...(string|Sentence|string[]|Sentence[])} text 분석할 문단(들).
+   * @param {...(string|Sentence|string[]|Sentence[])} texts 분석할 문단(들).
    * 각 인자는 텍스트(str), 문장 객체(Sentence), 텍스트의 리스트, 문장 객체의 리스트 혼용 가능 (가변인자)
    * @returns {Sentence[]} 분석된 결과 (Flattened list)
    */
-  async analyze(...text: any[]): Promise<Sentence[]> {
-    let result = [];
-    for (let paragraph of text) {
-      let promiseResult;
+  async analyze(...texts: (string | Sentence | string[] | Sentence[])[]): Promise<Sentence[]> {
+    let result: Sentence[] = [];
+    for (const paragraph of texts) {
+      let promiseResult: Sentence[];
+
       if (paragraph instanceof Sentence) {
         promiseResult = await this._api.analyzePromise(paragraph.reference);
         result.push(new Sentence(promiseResult));
@@ -366,8 +367,9 @@ class CanAnalyzeProperty extends Function {
         promiseResult = await this.analyze(...paragraph);
         result.push(...promiseResult);
       } else {
-        if (paragraph.trim().length == 0)
+        if (paragraph.trim().length === 0) {
           continue;
+        }
 
         promiseResult = await this._api.analyzePromise(paragraph);
         result.push(...JVM.toJsArray(promiseResult, (x) => new Sentence(x)));
@@ -384,7 +386,7 @@ class CanAnalyzeProperty extends Function {
    * 각 인자는 텍스트(str), 문장 객체(Sentence), 텍스트의 리스트, 문장 객체의 리스트 혼용 가능 (가변인자)
    * @returns {Sentence[]} 분석된 결과 (Flattened list)
    */
-  analyzeSync(...text: any[]): Sentence[] {
+  analyzeSync(...text: (string | Sentence | string[] | Sentence[])[]): Sentence[] {
     let result = [];
     for (let paragraph of text) {
       if (paragraph instanceof Sentence) {
@@ -461,7 +463,7 @@ export class Parser extends CanAnalyzeProperty {
    * @param {string} options.apiKey ETRI 분석기의 경우, ETRI에서 발급받은 API Key
    * @param {boolean} [options.isAsyncDefault=true] 객체를 함수처럼 사용할 때, 즉 processor("문장")과 같이 사용할 때, 기본 호출을 async로 할 지 선택합니다. 기본값은 Asynchronous 호출입니다.
    */
-  constructor(api: any, options: object | undefined = {}) {
+  constructor(api: any, options: { apiKey?: string; isAsyncDefault: boolean } = { isAsyncDefault: true }) {
     super(api, 'Parser', options);
   }
 }
