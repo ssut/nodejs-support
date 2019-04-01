@@ -1,6 +1,6 @@
 {
   "name": "koalanlp",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Node.js wrapper for KoalaNLP (An integrated API for processing Korean in with Kotlin/Java/Scala)",
   "author": {
     "name": "koalanlp"
@@ -12,11 +12,12 @@
   "bugs": {
     "url": "http://github.com/koalanlp/nodejs-support/issues"
   },
-  "main": "./index.js",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "scripts": {
     "test": "jest",
-    "compile": "./node_modules/.bin/babel -d ./ src/",
-    "jsdoc": "rm -rf docs/* && ./node_modules/jsdoc/jsdoc.js -c .jsdoc.json && git add docs/*"
+    "build": "npx tsc",
+    "jsdoc": "npx rimraf docs/* && npx jsdoc -c .jsdoc.json && git add docs/*"
   },
   "licenses": [
     {
@@ -43,25 +44,25 @@
     "개체명"
   ],
   "dependencies": {
-    "@babel/polyfill": "^7.0.0",
     "global": "^4.3.2",
     "java": "0.11.0",
+    "lodash": "^4.17.11",
     "node-java-maven": "^0.1.1",
     "request": "^2.88.0",
-    "underscore": "^1.9.1"
+    "request-promise": "^4.2.4"
   },
   "devDependencies": {
-    "@babel/cli": "^7.1.5",
-    "@babel/core": "^7.1.6",
-    "@babel/plugin-proposal-class-properties": "^7.1.0",
-    "@babel/preset-env": "^7.1.6",
-    "babel-core": "^7.0.0-bridge.0",
-    "babel-jest": "^24.0.0",
+    "@types/java": "^0.9.0",
+    "@types/jest": "^24.0.11",
+    "@types/lodash": "^4.14.123",
+    "@types/request": "^2.48.1",
+    "@types/request-promise": "^4.1.42",
     "codecov": "^3.1.0",
     "docdash": "^1.0.1",
     "jest": "^24.0.0",
     "jsdoc": "^3.5.5",
-    "regenerator-runtime": "^0.13.1",
-    "should": "^13.2.1"
+    "should": "^13.2.1",
+    "ts-jest": "^24.0.1",
+    "typescript": "^3.4.1"
   }
 }

@@ -1,37 +1,28 @@
-"use strict";
+/**
+ * 여러 분석기를 모아놓은 module입니다.
+ * @module koalanlp/proc
+ * @example
+ * import { SentenceSplitter, Tagger, Parser, RoleLabeler, EntityRecognizer, Dictionary } from 'koalanlp/proc';
+ **/
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.Dictionary = exports.RoleLabeler = exports.EntityRecognizer = exports.Parser = exports.Tagger = exports.SentenceSplitter = void 0;
-
-var _jvm = require("./jvm");
-
-var API = _interopRequireWildcard(require("./API"));
-
-var _types = require("./types");
-
-var _data = require("./data");
-
-var _common = require("./common");
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+import { JVM } from './jvm';
+import { API, query } from './API';
+import { POS } from './types';
+import { Sentence, Word } from './data';
+import { isDefined } from './common';
 
 /**
  * POSFilter 함수
- * @callback POSFilter
- * @param {!POS} tag 검사할 품사 태그
- * @return {boolean} 해당하면 true.
  */
+export type POSFilter = (tag: POS) => boolean;
 
 /**
  * 형태소 사전 항목. {'surface':형태소, 'tag':품사}
- * @typedef {Object} DicEntry
- * @property {!string} surface 형태소 표면형
- * @property {!POS} tag 형태소 품사
  */
+export interface DicEntry {
+  surface: string;
+  tag: POS;
+}
 
 /**
  * Build a Function Proxy object
@@ -40,17 +31,22 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
  * @returns {Object}
  * @private
  */
-function assignProxy(thisObj, method) {
-  if (method.endsWith('Sync')) return new Proxy(thisObj, {
-    apply: function (target, thisArg, argArray) {
-      return target[method](...argArray);
-    }
-  });else return new Proxy(thisObj, {
-    apply: async function (target, thisArg, argArray) {
+function assignProxy(thisObj: any, method: string): any {
+  if (method.endsWith('Sync')) {
+    return new Proxy(thisObj, {
+      async apply(target, thisArg, argArray) {
+        return target[method](...argArray);
+      },
+    });
+  }
+
+  return new Proxy(thisObj, {
+    async apply(target, thisArg, argArray) {
       return await target[method](...argArray);
-    }
+    },
   });
 }
+
 /**
  * 문장분리기 Wrapper입니다.
  * @example
@@ -60,14 +56,13 @@ function assignProxy(thisObj, method) {
  * let splitter = new SentenceSplitter(OKT);
  * splitter("문장을 분리해봅니다. 이렇게요.");
  */
-
-
-class SentenceSplitter extends Function {
+export class SentenceSplitter extends Function {
   /**
    * Java API Object
    * @type {Object}
    * @private
    */
+  private _api: any = null;
 
   /**
    * 문장분리기를 생성합니다.
@@ -76,93 +71,89 @@ class SentenceSplitter extends Function {
    * @param {Object} [options={}] 기타 설정
    * @param {boolean} [options.isAsyncDefault=true] 객체를 함수처럼 사용할 때, 즉 processor("문장")과 같이 사용할 때, 기본 호출을 async로 할 지 선택합니다. 기본값은 Asynchronous 호출입니다.
    */
-  constructor(api, options = {}) {
+  constructor(api: API, options: any = {}) {
     super();
+    this._api = query(api, this.constructor.name)();
+    options.isAsyncDefault = isDefined(options.isAsyncDefault) ? options.isAsyncDefault : true;
 
-    _defineProperty(this, "_api", null);
-
-    this._api = API.query(api, this.constructor.name)();
-    options.isAsyncDefault = (0, _common.isDefined)(options.isAsyncDefault) ? options.isAsyncDefault : true;
-    return assignProxy(this, options.isAsyncDefault ? 'sentences' : 'sentencesSync');
+    return assignProxy(this, (options.isAsyncDefault) ? 'sentences' : 'sentencesSync');
   }
+
   /**
    * 문단을 문장으로 분리합니다. (Asynchronous)
    * @param {...!string} text 분석할 문단들 (가변인자)
    * @returns {string[]} 분리한 문장들.
    */
+  public async sentences(...text: string[]): Promise<string[]> {
+    const result: string[] = [];
 
-
-  async sentences(...text) {
-    let result = [];
-
-    for (let paragraph of text) {
+    for (const paragraph of text) {
       if (Array.isArray(paragraph)) {
-        result.push(...(await this.sentences(...paragraph)));
+        result.push(...await this.sentences(...paragraph));
       } else {
-        if (paragraph.trim().length == 0) continue;
+        if (paragraph.trim().length == 0)
+          continue;
+
         let promiseResult = await this._api.sentencesPromise(paragraph);
-        result.push(..._jvm.JVM.toJsArray(promiseResult));
+        result.push(...JVM.toJsArray(promiseResult));
       }
     }
 
     return result;
   }
+
   /**
    * 문단을 문장으로 분리합니다. (Synchronous)
    * @param {...!string} text 분석할 문단들 (가변인자)
    * @returns {string[]} 분리한 문장들.
    */
+  public sentencesSync(...text: string[]): string[] {
+    const result: string[] = [];
 
-
-  sentencesSync(...text) {
-    let result = [];
-
-    for (let paragraph of text) {
+    for (const paragraph of text) {
       if (Array.isArray(paragraph)) {
         result.push(...this.sentencesSync(...paragraph));
       } else {
-        if (paragraph.trim().length == 0) continue;
-        result.push(..._jvm.JVM.toJsArray(this._api.sentences(paragraph)));
+        if (paragraph.trim().length === 0)
+          continue;
+
+        result.push(...JVM.toJsArray(this._api.sentences(paragraph)));
       }
     }
 
     return result;
   }
+
   /**
    * KoalaNLP가 구현한 문장분리기를 사용하여, 문단을 문장으로 분리합니다. (Asynchronous)
    * @param {Word[]} paragraph 분석할 문단. (품사표기가 되어있어야 합니다)
    * @returns {Sentence} 분리된 문장
    */
-
-
-  static async sentences(paragraph) {
+  static async sentences(paragraph: Word[]): Promise<Sentence> {
     let sent = [];
-
-    for (let word of paragraph) {
-      sent.push(word.getReference());
+    for (const word of paragraph) {
+      sent.push((word as any).getReference());
     }
 
-    let promiseResult = await _jvm.JVM.koalaClassOf('proc', 'SentenceSplitter').INSTANCE.sentencesPromise(sent);
-    return _jvm.JVM.toJsArray(promiseResult, x => new _data.Sentence(x));
+    let promiseResult = await JVM.koalaClassOf('proc', 'SentenceSplitter').INSTANCE.sentencesPromise(sent);
+    return JVM.toJsArray(promiseResult, (x: any) => new Sentence(x)) as any;
   }
+
   /**
    * KoalaNLP가 구현한 문장분리기를 사용하여, 문단을 문장으로 분리합니다. (Synchronous)
    * @param {Word[]} paragraph 분석할 문단. (품사표기가 되어있어야 합니다)
    * @returns {Sentence} 분리된 문장
    */
-
-
-  static sentencesSync(paragraph) {
+  static sentencesSync(paragraph: Word[]): Sentence[] {
     let sent = [];
-
     for (let word of paragraph) {
-      sent.push(word.getReference());
+      sent.push((word as any).getReference());
     }
 
-    return _jvm.JVM.toJsArray(_jvm.JVM.koalaClassOf('proc', 'SentenceSplitter').INSTANCE.sentences(sent), x => new _data.Sentence(x));
+    return JVM.toJsArray(JVM.koalaClassOf('proc', 'SentenceSplitter').INSTANCE.sentences(sent), (x) => new Sentence(x));
   }
-
 }
+
 /**
  * 형태소 분석기
  *
@@ -192,16 +183,13 @@ class SentenceSplitter extends Function {
  * let tagger = new Tagger(KMR);
  * tagger("문장을 분석해봅니다. 이렇게요.");
  */
-
-
-exports.SentenceSplitter = SentenceSplitter;
-
-class Tagger extends Function {
+export class Tagger extends Function {
   /**
    * Java API Object
    * @type {Object}
    * @private
    */
+  private api: any = null;
 
   /**
    * 품사분석기를 초기화합니다.
@@ -212,134 +200,130 @@ class Tagger extends Function {
    * @param {boolean} [options.useLightTagger=false] 코모란(KMR) 분석기의 경우, 경량 분석기를 사용할 것인지의 여부.
    * @param {boolean} [options.isAsyncDefault=true] 객체를 함수처럼 사용할 때, 즉 processor("문장")과 같이 사용할 때, 기본 호출을 async로 할 지 선택합니다. 기본값은 Asynchronous 호출입니다.
    */
-  constructor(api, options = {}) {
+  constructor(api: API, {
+    apiKey = '',
+    useLightTagger = false,
+    isAsyncDefault = true,
+  } = {}) {
     super();
 
-    _defineProperty(this, "_api", null);
+    switch (api) {
+      case API.ETRI:
+        this.api = query(api, this.constructor.name)(apiKey);
+        break;
 
-    if (api === API.ETRI) {
-      let apiKey = options.apiKey;
-      this._api = API.query(api, this.constructor.name)(apiKey);
-    } else if (api === API.KMR) {
-      let useLightTagger = options.useLightTagger || false;
-      this._api = API.query(api, this.constructor.name)(useLightTagger);
-    } else {
-      this._api = API.query(api, this.constructor.name)();
+      case API.KMR:
+        this.api = query(api, this.constructor.name)(useLightTagger);
+        break;
+
+      default:
+        this.api = query(api, this.constructor.name)();
     }
 
-    options.isAsyncDefault = (0, _common.isDefined)(options.isAsyncDefault) ? options.isAsyncDefault : true;
-    return assignProxy(this, options.isAsyncDefault ? 'tag' : 'tagSync');
+    return assignProxy(this, isAsyncDefault ? 'tag' : 'tagSync');
   }
+
   /**
    * 문단(들)을 품사분석합니다. (Asynchronous)
    * @param {...(string|string[])} text 분석할 문단들. 텍스트와 string 리스트 혼용 가능. (가변인자)
    * @returns {Sentence[]} 분석된 결과 (Flattened list)
    */
-
-
-  async tag(...text) {
+  async tag(...text: any[]): Promise<Sentence[]> {
     let result = [];
-
     for (let paragraph of text) {
       let promiseResult;
-
       if (Array.isArray(paragraph)) {
         promiseResult = await this.tag(...paragraph);
         result.push(...promiseResult);
       } else {
-        if (paragraph.trim().length == 0) continue;
-        promiseResult = await this._api.tagPromise(paragraph);
-        result.push(..._jvm.JVM.toJsArray(promiseResult, x => new _data.Sentence(x)));
+        if (paragraph.trim().length == 0)
+          continue;
+
+        promiseResult = await this.api.tagPromise(paragraph);
+        result.push(...JVM.toJsArray(promiseResult, (x) => new Sentence(x)));
       }
     }
-
     return result;
   }
+
   /**
    * 문단(들)을 품사분석합니다. (Synchronous)
    * @param {...(string|string[])} text 분석할 문단들. 텍스트와 string 리스트 혼용 가능. (가변인자)
    * @returns {Sentence[]} 분석된 결과 (Flattened list)
    */
-
-
-  tagSync(...text) {
+  tagSync(...text: any[]): Sentence[] {
     let result = [];
-
     for (let paragraph of text) {
       if (Array.isArray(paragraph)) {
         result.push(...this.tagSync(...paragraph));
       } else {
-        if (paragraph.trim().length == 0) continue;
-        result.push(..._jvm.JVM.toJsArray(this._api.tag(paragraph), x => new _data.Sentence(x)));
+        if (paragraph.trim().length == 0)
+          continue;
+
+        result.push(...JVM.toJsArray(this.api.tag(paragraph), (x) => new Sentence(x)));
       }
     }
-
     return result;
   }
+
   /**
    * 문장을 품사분석합니다. 각 인자 하나를 하나의 문장으로 간주합니다. (Asynchronous)
    *
    * @param {...!string} text 분석할 문장(들). (가변인자)
    * @returns {Sentence[]} 분석된 결과.
    */
-
-
-  async tagSentence(...text) {
+  async tagSentence(...text: any[]): Promise<Sentence[]> {
     let result = [];
-
     for (let sentence of text) {
       let promiseResult;
-
       if (Array.isArray(sentence)) {
         promiseResult = await this.tagSentence(...sentence);
         result.push(...promiseResult);
       } else {
-        if (sentence.trim().length == 0) continue;
-        promiseResult = await this._api.tagSentencePromise(sentence);
-        result.push(new _data.Sentence(promiseResult));
+        if (sentence.trim().length == 0)
+          continue;
+
+        promiseResult = await this.api.tagSentencePromise(sentence);
+        result.push(new Sentence(promiseResult));
       }
     }
-
     return result;
   }
+
   /**
    * 문장을 품사분석합니다. 각 인자 하나를 하나의 문장으로 간주합니다. (Synchronous)
    *
    * @param {...!string} text 분석할 문장(들). (가변인자)
    * @returns {Sentence[]} 분석된 결과.
    */
-
-
-  tagSentenceSync(...text) {
+  tagSentenceSync(...text: any[]): Sentence[] {
     let result = [];
-
     for (let sentence of text) {
       if (Array.isArray(sentence)) {
         result.push(...this.tagSentenceSync(...sentence));
       } else {
-        if (sentence.trim().length == 0) continue;
-        result.push(new _data.Sentence(this._api.tagSentence(sentence)));
+        if (sentence.trim().length == 0)
+          continue;
+
+        result.push(new Sentence(this.api.tagSentence(sentence)));
       }
     }
-
     return result;
   }
-
 }
+
+
 /**
  * 문장 속성 부착기 Wrapper
  * @private
  */
-
-
-exports.Tagger = Tagger;
-
 class CanAnalyzeProperty extends Function {
   /**
    * Java API Object
    * @type {Object}
    * @private
    */
+  _api: any = null;
 
   /**
    * 특성 부착형 분석기를 초기화합니다.
@@ -350,21 +334,20 @@ class CanAnalyzeProperty extends Function {
    * @param {string} options.apiKey ETRI 분석기의 경우, ETRI에서 발급받은 API Key
    * @param {boolean} [options.isAsyncDefault=true] 객체를 함수처럼 사용할 때, 즉 processor("문장")과 같이 사용할 때, 기본 호출을 async로 할 지 선택합니다. 기본값은 Asynchronous 호출입니다.
    */
-  constructor(api, cls, options = {}) {
+  constructor(api: API, cls: any, options: any = {}) {
     super();
-
-    _defineProperty(this, "_api", null);
 
     if (api === API.ETRI) {
       let apiKey = options.apiKey;
-      this._api = API.query(api, cls)(apiKey);
+      this._api = query(api, cls)(apiKey);
     } else {
-      this._api = API.query(api, cls)();
+      this._api = query(api, cls)();
     }
 
-    options.isAsyncDefault = (0, _common.isDefined)(options.isAsyncDefault) ? options.isAsyncDefault : true;
-    return assignProxy(this, options.isAsyncDefault ? 'analyze' : 'analyzeSync');
+    options.isAsyncDefault = isDefined(options.isAsyncDefault) ? options.isAsyncDefault : true;
+    return assignProxy(this, (options.isAsyncDefault) ? 'analyze' : 'analyzeSync');
   }
+
   /**
    * 문단(들)을 분석합니다. (Asynchronous)
    *
@@ -372,29 +355,28 @@ class CanAnalyzeProperty extends Function {
    * 각 인자는 텍스트(str), 문장 객체(Sentence), 텍스트의 리스트, 문장 객체의 리스트 혼용 가능 (가변인자)
    * @returns {Sentence[]} 분석된 결과 (Flattened list)
    */
-
-
-  async analyze(...text) {
+  async analyze(...text: any[]): Promise<Sentence[]> {
     let result = [];
-
     for (let paragraph of text) {
       let promiseResult;
-
-      if (paragraph instanceof _data.Sentence) {
+      if (paragraph instanceof Sentence) {
         promiseResult = await this._api.analyzePromise(paragraph.reference);
-        result.push(new _data.Sentence(promiseResult));
+        result.push(new Sentence(promiseResult));
       } else if (Array.isArray(paragraph)) {
         promiseResult = await this.analyze(...paragraph);
         result.push(...promiseResult);
       } else {
-        if (paragraph.trim().length == 0) continue;
+        if (paragraph.trim().length == 0)
+          continue;
+
         promiseResult = await this._api.analyzePromise(paragraph);
-        result.push(..._jvm.JVM.toJsArray(promiseResult, x => new _data.Sentence(x)));
+        result.push(...JVM.toJsArray(promiseResult, (x) => new Sentence(x)));
       }
     }
 
     return result;
   }
+
   /**
    * 문단(들)을 분석합니다. (Synchronous)
    *
@@ -402,26 +384,25 @@ class CanAnalyzeProperty extends Function {
    * 각 인자는 텍스트(str), 문장 객체(Sentence), 텍스트의 리스트, 문장 객체의 리스트 혼용 가능 (가변인자)
    * @returns {Sentence[]} 분석된 결과 (Flattened list)
    */
-
-
-  analyzeSync(...text) {
+  analyzeSync(...text: any[]): Sentence[] {
     let result = [];
-
     for (let paragraph of text) {
-      if (paragraph instanceof _data.Sentence) {
-        result.push(new _data.Sentence(this._api.analyze(paragraph.reference)));
+      if (paragraph instanceof Sentence) {
+        result.push(new Sentence(this._api.analyze(paragraph.reference)));
       } else if (Array.isArray(paragraph)) {
         result.push(...this.analyzeSync(...paragraph));
       } else {
-        if (paragraph.trim().length == 0) continue;
-        result.push(..._jvm.JVM.toJsArray(this._api.analyze(paragraph), x => new _data.Sentence(x)));
+        if (paragraph.trim().length == 0)
+          continue;
+
+        result.push(...JVM.toJsArray(this._api.analyze(paragraph), (x) => new Sentence(x)));
       }
     }
 
     return result;
   }
-
 }
+
 /**
  * 구문구조/의존구조 분석기 Wrapper
  *
@@ -471,9 +452,7 @@ class CanAnalyzeProperty extends Function {
  * let parser = new Parser(HNN);
  * parser("문장을 분석해봅니다. 이렇게요.");
  */
-
-
-class Parser extends CanAnalyzeProperty {
+export class Parser extends CanAnalyzeProperty {
   /**
    * 구문구조/의존구조분석기를 초기화합니다.
    *
@@ -482,11 +461,11 @@ class Parser extends CanAnalyzeProperty {
    * @param {string} options.apiKey ETRI 분석기의 경우, ETRI에서 발급받은 API Key
    * @param {boolean} [options.isAsyncDefault=true] 객체를 함수처럼 사용할 때, 즉 processor("문장")과 같이 사용할 때, 기본 호출을 async로 할 지 선택합니다. 기본값은 Asynchronous 호출입니다.
    */
-  constructor(api, options = {}) {
+  constructor(api: any, options: object | undefined = {}) {
     super(api, 'Parser', options);
   }
-
 }
+
 /**
  * 개체명 인식기 Wrapper
  *
@@ -517,11 +496,7 @@ class Parser extends CanAnalyzeProperty {
  * let parser = new EntityRecognizer(ETRI);
  * parser("문장을 분석해봅니다. 이렇게요.");
  */
-
-
-exports.Parser = Parser;
-
-class EntityRecognizer extends CanAnalyzeProperty {
+export class EntityRecognizer extends CanAnalyzeProperty {
   /**
    * 개체명 인식기를 초기화합니다.
    *
@@ -530,12 +505,12 @@ class EntityRecognizer extends CanAnalyzeProperty {
    * @param {string} options.apiKey ETRI 분석기의 경우, ETRI에서 발급받은 API Key
    * @param {boolean} [options.isAsyncDefault=true] 객체를 함수처럼 사용할 때, 즉 processor("문장")과 같이 사용할 때, 기본 호출을 async로 할 지 선택합니다. 기본값은 Asynchronous 호출입니다.
    */
-  constructor(api, options = {}) {
+  constructor(api: any, options: object | undefined = {}) {
     super(api, 'EntityRecognizer', options);
     return assignProxy(this, 'analyze');
   }
-
 }
+
 /**
  * 의미역 분석기 Wrapper
  *
@@ -568,11 +543,7 @@ class EntityRecognizer extends CanAnalyzeProperty {
  * let parser = new RoleLabeler(ETRI);
  * parser("문장을 분석해봅니다. 이렇게요.");
  */
-
-
-exports.EntityRecognizer = EntityRecognizer;
-
-class RoleLabeler extends CanAnalyzeProperty {
+export class RoleLabeler extends CanAnalyzeProperty {
   /**
    * 의미역 분석기를 초기화합니다.
    *
@@ -581,28 +552,25 @@ class RoleLabeler extends CanAnalyzeProperty {
    * @param {string} options.apiKey ETRI 분석기의 경우, ETRI에서 발급받은 API Key
    * @param {boolean} [options.isAsyncDefault=true] 객체를 함수처럼 사용할 때, 즉 processor("문장")과 같이 사용할 때, 기본 호출을 async로 할 지 선택합니다. 기본값은 Asynchronous 호출입니다.
    */
-  constructor(api, options = {}) {
+  constructor(api: any, options: object | undefined = {}) {
     super(api, 'RoleLabeler', options);
     return assignProxy(this, 'analyze');
   }
-
 }
+
 /**
  * Java 사전 항목을 JS 사전 항목으로 변환.
  * @param entry Java 사전 항목
  * @return {DicEntry} JS 사전 항목
  * @private
  */
-
-
-exports.RoleLabeler = RoleLabeler;
-
-function readDicEntry(entry) {
+function readDicEntry(entry: any): DicEntry {
   return {
     'surface': entry.getFirst(),
-    'tag': _types.POS.withName(entry.getSecond().name())
+    'tag': POS.withName(entry.getSecond().name())
   };
 }
+
 /**
  * 사전 Wrapper
  * @example
@@ -612,62 +580,58 @@ function readDicEntry(entry) {
  * let dict = Dictionary(KKMA);
  * dict.addUserDictionary({'surface': "하림"});
  */
-
-
-class Dictionary {
+export class Dictionary {
   /**
    * Java API Object
    * @type {Object}
    * @private
    */
+  _api: any = null;
 
   /**
    * 사용자 정의 사전을 연결합니다.
    *
    * @param {!API} api 사용자 정의 사전을 연결할 API 패키지.
    */
-  constructor(api) {
-    _defineProperty(this, "_api", null);
-
-    this._api = API.query(api, 'Dictionary').INSTANCE;
+  constructor(api: any) {
+    this._api = query(api, 'Dictionary').INSTANCE;
   }
+
   /**
    * 사용자 사전에, 표면형과 그 품사를 추가.
    * @param {...DicEntry} pairs 추가할 형태소와 품사들. (가변인자)
    */
-
-
-  addUserDictionary(...pairs) {
+  addUserDictionary(...pairs: any[]) {
     let surfaceList = [];
     let tagList = [];
 
     for (let pair of pairs) {
       surfaceList.push(pair.surface);
-      let tag = pair.tag ? pair.tag.reference : _types.POS.NNP.reference;
+
+      let tag = pair.tag ? pair.tag.reference : POS.NNP.reference;
       tagList.push(tag);
     }
 
-    this._api.addUserDictionary(_jvm.JVM.listOf(surfaceList), _jvm.JVM.listOf(tagList));
+    this._api.addUserDictionary(JVM.listOf(surfaceList), JVM.listOf(tagList));
   }
+
   /**
    * 사전에 등재되어 있는지 확인합니다.
    * @param {string} word 확인할 형태소
    * @param {POS} posTags 세종품사들(기본값: NNP 고유명사, NNG 일반명사)
    * @returns {boolean} 사전에 포함된다면 True 아니면 False.
    */
-
-
-  contains(word, ...posTags) {
-    let tags = posTags.length > 0 ? posTags : [_types.POS.NNP, _types.POS.NNG];
-
+  contains(word: any, ...posTags: any[]): boolean {
+    let tags = (posTags.length > 0) ? posTags : [POS.NNP, POS.NNG];
     if (tags.length === 1) {
       let tag = tags[0];
-      return this._api.contains(_jvm.JVM.pair(word, tag.reference));
+      return this._api.contains(JVM.pair(word, tag.reference));
     } else {
-      let tagsRef = tags.map(tag => tag.reference);
-      return this._api.contains(word, _jvm.JVM.setOf(tagsRef));
+      let tagsRef = tags.map((tag) => tag.reference);
+      return this._api.contains(word, JVM.setOf(tagsRef));
     }
   }
+
   /**
    * 다른 사전을 참조하여, 선택된 사전에 없는 단어를 사용자사전으로 추가합니다.
    *
@@ -675,73 +639,63 @@ class Dictionary {
    * @param {boolean} [fastAppend=false] 선택된 사전에 존재하는지를 검사하지 않고 빠르게 추가하고자 할 때.
    * @param {POSFilter} [filter=(x) => x.isNoun()] 가져올 품사나, 품사의 리스트, 또는 해당 품사인지 판단하는 함수.
    */
-
-
-  async importFrom(other, fastAppend = false, filter = x => x.isNoun()) {
+  async importFrom(other: { _api: any; }, fastAppend: boolean = false, filter: POSFilter = (x) => x.isNoun()) {
     let tags = [];
-
     if (filter instanceof Function) {
-      for (let tag of _types.POS.values()) {
+      for (let tag of POS.values()) {
         if (filter(tag)) tags.push(tag.tagname);
       }
     } else {
-      for (let tag of filter) {
+      for (let tag of filter as any) {
         tags.push(tag.tagname);
       }
     }
 
-    await this._api.importFromPromise(other._api, fastAppend, _jvm.JVM.posFilter(tags));
+    await this._api.importFromPromise(other._api, fastAppend, JVM.posFilter(tags));
   }
+
   /**
    * 원본 사전에 등재된 항목 중에서, 지정된 형태소의 항목만을 가져옵니다. (복합 품사 결합 형태는 제외)
    *
    * @param {POSFilter} [filter=(x) => x.isNoun()] 가져올 품사나, 품사의 리스트, 또는 해당 품사인지 판단하는 함수.
    * @return {Iterator.<DicEntry>} {'surface':형태소, 'tag':품사}의 generator
    */
-
-
-  async getBaseEntries(filter = x => x.isNoun()) {
+  async getBaseEntries(filter: POSFilter = (x) => x.isNoun()): Promise<Iterator<DicEntry>> {
     let tags = [];
-
     if (filter instanceof Function) {
-      for (let tag of _types.POS.values()) {
+      for (let tag of POS.values()) {
         if (filter(tag)) tags.push(tag.tagname);
       }
     } else {
-      for (let tag of filter) {
+      for (let tag of filter as any) {
         tags.push(tag.tagname);
       }
     }
 
-    let entries = await this._api.getBaseEntriesPromise(_jvm.JVM.posFilter(tags));
-    return function* () {
+    let entries = await this._api.getBaseEntriesPromise(JVM.posFilter(tags));
+    return (function* () {
       while (entries.hasNext()) {
         yield readDicEntry(entries.next());
       }
-    }();
+    })();
   }
+
   /**
    * 사용자 사전에 등재된 모든 항목을 가져옵니다.
    * @return {DicEntry[]} {'surface':형태소, 'tag':품사}의 list
    */
-
-
-  async getItems() {
-    return _jvm.JVM.toJsArray((await this._api.getItemsPromise()), readDicEntry);
+  async getItems(): Promise<DicEntry[]> {
+    return JVM.toJsArray(await this._api.getItemsPromise(), readDicEntry);
   }
+
   /**
    * 사전에 등재되어 있는지 확인하고, 사전에 없는단어만 반환합니다.
    * @param {boolean} onlySystemDic 시스템 사전에서만 검색할지 결정합니다.
    * @param {DicEntry} word {'surface':형태소, 'tag':품사}들. (가변인자)
    * @return {DicEntry[]} 사전에 없는 단어들
    */
-
-
-  async getNotExists(onlySystemDic, ...word) {
-    let zipped = word.map(pair => _jvm.JVM.pair(pair.surface, pair.tag.reference));
-    return _jvm.JVM.toJsArray((await this._api.getNotExistsPromise(onlySystemDic, ...zipped)), readDicEntry);
+  async getNotExists(onlySystemDic: any, ...word: any[]): Promise<DicEntry[]> {
+    let zipped = word.map((pair) => JVM.pair(pair.surface, pair.tag.reference));
+    return JVM.toJsArray(await this._api.getNotExistsPromise(onlySystemDic, ...zipped), readDicEntry);
   }
-
 }
-
-exports.Dictionary = Dictionary;

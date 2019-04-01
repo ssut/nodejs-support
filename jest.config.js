@@ -30,7 +30,7 @@ module.exports = {
   coveragePathIgnorePatterns: [
     "/node_modules/",
     "/test/",
-    "<rootDir>/*.js"
+    "<rootDir>/lib/*.js"
   ],
 
   // A list of reporter names that Jest uses when writing coverage reports
@@ -57,7 +57,11 @@ module.exports = {
   // globalTeardown: null,
 
   // A set of global variables that need to be available in all test environments
-  // globals: {},
+  globals: {
+    "ts-jest": {
+      "tsConfig": "tsconfig.json"
+    }
+  },
 
   // An array of directory names to be searched recursively up from the requiring module's location
   // moduleDirectories: [
@@ -65,12 +69,11 @@ module.exports = {
   // ],
 
   // An array of file extensions your modules use
-  // moduleFileExtensions: [
-  //   "js",
-  //   "json",
-  //   "jsx",
-  //   "node"
-  // ],
+  moduleFileExtensions: [
+    "ts",
+    "js",
+    "json"
+  ],
 
   // A map from regular expressions to module names that allow to stub out resources with a single module
   // moduleNameMapper: {},
@@ -85,7 +88,7 @@ module.exports = {
   // notifyMode: "always",
 
   // A preset that is used as a base for Jest's configuration
-  // preset: null,
+  preset: "ts-jest",
 
   // Run tests from one or more projects
   // projects: null,
@@ -136,7 +139,7 @@ module.exports = {
 
   // The glob patterns Jest uses to detect test files
   testMatch: [
-    "**/test/**/execute*.js?(x)"
+    "**/test/**/execute*.ts"
   ],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
@@ -161,6 +164,9 @@ module.exports = {
 
   // A map from regular expressions to paths to transformers
   // transform: null,
+  transform: {
+    "^.+\\.(ts)$": "ts-jest"
+  },
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
   // transformIgnorePatterns: [

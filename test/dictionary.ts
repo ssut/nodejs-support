@@ -4,7 +4,7 @@ import {POS} from '../src/types';
 
 export default function () {
     describe('Dictionary', () => {
-        let dict1, dict2;
+        let dict1: any, dict2: any;
 
         beforeAll(async() => {
             dict1 = new Dictionary(KKMA);
@@ -41,10 +41,10 @@ export default function () {
 
         describe('#getBaseEntries()', () => {
             it('can obtain entries correctly', async() => {
-                let gen = await dict1.getBaseEntries((t) => t.isNoun());
+                let gen = await dict1.getBaseEntries((t: any) => t.isNoun());
                 expect(gen.next().done).toBe(false);
 
-                let gen2 = await dict1.getBaseEntries((t) => t.isAffix());
+                let gen2 = await dict1.getBaseEntries((t: any) => t.isAffix());
                 expect(gen2.next().done).toBe(false);
                 let gen2Array = [];
                 for (const item of gen2)
@@ -53,7 +53,7 @@ export default function () {
 
                 let counter = 0;
                 for (const entry of gen) {
-                    counter += gen2Array.includes(entry);
+                    counter += Number(gen2Array.includes(entry));
                 }
                 expect(counter).toBe(0);
             });
@@ -63,11 +63,11 @@ export default function () {
             it('can import from other dict', async() => {
                 let itemsPrev = await dict2.getItems();
                 let itemSizePrev = itemsPrev.length;
-                let itemSizeNounPrev = itemsPrev.filter((t) => t.tag.isNoun()).length;
-                await dict2.importFrom(dict1, true, (t) => t.isNoun());
+                let itemSizeNounPrev = itemsPrev.filter((t: any) => t.tag.isNoun()).length;
+                await dict2.importFrom(dict1, true, (t: any) => t.isNoun());
                 let itemsAfter = await dict2.getItems();
                 let itemSizeAfter= itemsAfter.length;
-                let itemSizeNounAfter = itemsAfter.filter((t) => t.tag.isNoun()).length;
+                let itemSizeNounAfter = itemsAfter.filter((t: any) => t.tag.isNoun()).length;
 
                 expect(itemSizePrev).toBeLessThan(itemSizeAfter);
                 expect(itemSizeAfter - itemSizePrev).toEqual(itemSizeNounAfter - itemSizeNounPrev);

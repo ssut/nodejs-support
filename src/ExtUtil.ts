@@ -6,7 +6,7 @@
  **/
 
 import {JVM} from './jvm';
-import _ from 'underscore';
+import * as _ from 'lodash';
 
 
 /**
@@ -75,23 +75,23 @@ export const ChoToJong = Object.freeze(new Map([
     ['\u1112', '\u11C2'], // ㅎ
     // 아래는 완성형 문자
     ['ㄱ', '\u11A8'], // ㄱ
-    ['ㄲ', '\u11A9'], 
-    ['ㄳ', '\u11AA'], 
+    ['ㄲ', '\u11A9'],
+    ['ㄳ', '\u11AA'],
     ['ㄴ', '\u11AB'], // ㄴ
-    ['ㄵ', '\u11AC'], 
-    ['ㄶ', '\u11AD'], 
+    ['ㄵ', '\u11AC'],
+    ['ㄶ', '\u11AD'],
     ['ㄷ', '\u11AE'], // ㄷ
     ['ㄹ', '\u11AF'], // ㄹ
-    ['ㄺ', '\u11B0'], 
-    ['ㄻ', '\u11B1'], 
-    ['ㄼ', '\u11B2'], 
-    ['ㄽ', '\u11B3'], 
-    ['ㄾ', '\u11B4'], 
-    ['ㄿ', '\u11B5'], 
-    ['ㅀ', '\u11B6'], 
+    ['ㄺ', '\u11B0'],
+    ['ㄻ', '\u11B1'],
+    ['ㄼ', '\u11B2'],
+    ['ㄽ', '\u11B3'],
+    ['ㄾ', '\u11B4'],
+    ['ㄿ', '\u11B5'],
+    ['ㅀ', '\u11B6'],
     ['ㅁ', '\u11B7'], // ㅁ
     ['ㅂ', '\u11B8'], // ㅂ
-    ['ㅄ', '\u11B9'], 
+    ['ㅄ', '\u11B9'],
     ['ㅅ', '\u11BA'], // ㅅ
     ['ㅆ', '\u11BB'], // ㅆ
     ['ㅇ', '\u11BC'], // ㅇ
@@ -113,7 +113,7 @@ export const ChoToJong = Object.freeze(new Map([
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.alphaToHangul("갤럭시S"));
  */
-export function alphaToHangul(text) {
+export function alphaToHangul(text: string): string {
     return JVM.koalaClassOf('ExtUtil').alphaToHangul(text).toString();
 }
 
@@ -126,7 +126,7 @@ export function alphaToHangul(text) {
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.hangulToAlpah("갤럭시에스"));
  */
-export function hangulToAlpha(text) {
+export function hangulToAlpha(text: string): string {
     return JVM.koalaClassOf('ExtUtil').hangulToAlpha(text).toString();
 }
 
@@ -139,7 +139,7 @@ export function hangulToAlpha(text) {
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.isAlphaPronounced("갤럭시에스"));
  */
-export function isAlphaPronounced(text) {
+export function isAlphaPronounced(text: string): boolean {
     return JVM.koalaClassOf('ExtUtil').isAlphaPronounced(text);
 }
 
@@ -150,7 +150,7 @@ export function isAlphaPronounced(text) {
  * @returns {Array} 문자별 결과.
  * @private
  */
-function stringRepeat(text, charFunction) {
+function stringRepeat(text: string, charFunction: any) {
     let result = [];
     for (let ch of text) {
         let res = charFunction(JVM.char(ch));
@@ -169,7 +169,7 @@ function stringRepeat(text, charFunction) {
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.isHanja("貝波通水"));
  */
-export function isHanja(text) {
+export function isHanja(text: string): boolean[] {
     return stringRepeat(text, JVM.koalaClassOf('ExtUtil').isHanja);
 }
 
@@ -184,7 +184,7 @@ export function isHanja(text) {
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.isCJKHanja("貝波通水"));
  */
-export function isCJKHanja(text) {
+export function isCJKHanja(text: string): boolean[] {
     return stringRepeat(text, JVM.koalaClassOf('ExtUtil').isCJKHanja);
 }
 
@@ -207,7 +207,7 @@ export function isCJKHanja(text) {
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.hanjaToHangul("貝波通水"));
  */
-export function hanjaToHangul(text, headCorrection = true) {
+export function hanjaToHangul(text: string, headCorrection = true): string {
     return JVM.koalaClassOf('ExtUtil').hanjaToHangul(text, headCorrection).toString();
 }
 
@@ -221,7 +221,7 @@ export function hanjaToHangul(text, headCorrection = true) {
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.isCompleteHangul("Sing! 노래하라"));
  */
-export function isCompleteHangul(text) {
+export function isCompleteHangul(text: string): boolean[] {
     return stringRepeat(text, JVM.koalaClassOf('ExtUtil').isCompleteHangul);
 }
 
@@ -235,7 +235,7 @@ export function isCompleteHangul(text) {
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.isIncompleteHangul("Sing! 노래하라"));
  */
-export function isIncompleteHangul(text) {
+export function isIncompleteHangul(text: string): boolean[] {
     return stringRepeat(text, JVM.koalaClassOf('ExtUtil').isIncompleteHangul);
 }
 
@@ -249,7 +249,7 @@ export function isIncompleteHangul(text) {
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.isHangul("Sing! 노래하라"));
  */
-export function isHangul(text) {
+export function isHangul(text: string): boolean[] {
     return stringRepeat(text, JVM.koalaClassOf('ExtUtil').isHangul);
 }
 
@@ -263,7 +263,7 @@ export function isHangul(text) {
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.isHangulEnding("Sing! 노래하라"));
  */
-export function isHangulEnding(text) {
+export function isHangulEnding(text: string): boolean[] {
     return JVM.koalaClassOf('ExtUtil').isHangulEnding(text);
 }
 
@@ -277,7 +277,7 @@ export function isHangulEnding(text) {
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.isChosungJamo("\u1100"));
  */
-export function isChosungJamo(text) {
+export function isChosungJamo(text: string): boolean[] {
     return stringRepeat(text, JVM.koalaClassOf('ExtUtil').isChosungJamo);
 }
 
@@ -291,7 +291,7 @@ export function isChosungJamo(text) {
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.isJungsungJamo("\u1161"));
  */
-export function isJungsungJamo(text) {
+export function isJungsungJamo(text: string): boolean[] {
     return stringRepeat(text, JVM.koalaClassOf('ExtUtil').isJungsungJamo);
 }
 
@@ -305,7 +305,7 @@ export function isJungsungJamo(text) {
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.isJungsungJamo("\u11A8"));
  */
-export function isJongsungJamo(text) {
+export function isJongsungJamo(text: string): boolean[] {
     return stringRepeat(text, JVM.koalaClassOf('ExtUtil').isJongsungJamo);
 }
 
@@ -319,7 +319,7 @@ export function isJongsungJamo(text) {
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.isJongsungEnding("Sing! 노래하라"));
  */
-export function isJongsungEnding(text) {
+export function isJongsungEnding(text: string): boolean {
     return JVM.koalaClassOf('ExtUtil').isJongsungEnding(text);
 }
 
@@ -332,7 +332,7 @@ export function isJongsungEnding(text) {
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.getChosung("제주도의 푸른 밤"));
  */
-export function getChosung(text) {
+export function getChosung(text: string): string[] {
     return stringRepeat(text, JVM.koalaClassOf('ExtUtil').getChosung);
 }
 
@@ -345,7 +345,7 @@ export function getChosung(text) {
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.getJungsung("제주도의 푸른 밤"));
  */
-export function getJungsung(text) {
+export function getJungsung(text: string): string[] {
     return stringRepeat(text, JVM.koalaClassOf('ExtUtil').getJungsung);
 }
 
@@ -358,7 +358,7 @@ export function getJungsung(text) {
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.getJongsung("제주도의 푸른 밤"));
  */
-export function getJongsung(text) {
+export function getJongsung(text: string): string[] {
     return stringRepeat(text, JVM.koalaClassOf('ExtUtil').getJongsung);
 }
 
@@ -371,7 +371,7 @@ export function getJongsung(text) {
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.dissembleHangul("제주도의 푸른 밤"));
  */
-export function dissembleHangul(text) {
+export function dissembleHangul(text: string): string {
     return JVM.koalaClassOf('ExtUtil').dissembleHangul(text).toString();
 }
 
@@ -387,7 +387,7 @@ export function dissembleHangul(text) {
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.assembleHangulTriple('\u1100', '\u1161', '\u11A8'));
  */
-export function assembleHangulTriple(cho = undefined, jung = undefined, jong = undefined) {
+export function assembleHangulTriple(cho?: string, jung?: string, jong?: string): string {
     return JVM.koalaClassOf('ExtUtil').assembleHangul(JVM.char(cho), JVM.char(jung), JVM.char(jong));
 }
 
@@ -401,7 +401,7 @@ export function assembleHangulTriple(cho = undefined, jung = undefined, jong = u
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.assembleHangul("제주도의 푸른 밤인 \u1100\u1161\u11A8"));
  */
-export function assembleHangul(text) {
+export function assembleHangul(text: string): string {
     return JVM.koalaClassOf('ExtUtil').assembleHangulString(text).toString()
 }
 
@@ -417,6 +417,6 @@ export function assembleHangul(text) {
  * import * as ExtUtil from 'koalanlp/ExtUtil';
  * console.log(ExtUtil.correctVerbApply("밀리",true,"어"));
  */
-export function correctVerbApply(verb, isVerb, rest) {
+export function correctVerbApply(verb: string, isVerb: boolean, rest: string): string {
     return JVM.koalaClassOf('ExtUtil').correctVerbApply(verb, isVerb, rest);
 }
