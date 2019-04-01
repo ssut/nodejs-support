@@ -1,11 +1,11 @@
-import {SentenceSplitter, Tagger, Parser, EntityRecognizer, RoleLabeler} from '../src/proc';
-import {Morpheme, Word, Sentence, SyntaxTree, DepEdge, RoleEdge, Entity} from '../src/data';
-import {POS} from '../src/types';
-import {OKT, HNN, ETRI} from '../src/API';
-import _ from 'underscore';
+import { SentenceSplitter, Tagger, Parser, EntityRecognizer, RoleLabeler } from '../src/proc';
+import { Morpheme, Word, Sentence, SyntaxTree, DepEdge, RoleEdge, Entity } from '../src/data';
+import { POS } from '../src/types';
+import { OKT, HNN, ETRI } from '../src/API';
+import * as _ from 'lodash';
 
 let EXAMPLES =
-    `01 1+1은 2이고, 3*3은 9이다.
+  `01 1+1은 2이고, 3*3은 9이다.
 01 RHINO는 말줄임표를... 확인해야함... ^^ 이것도 확인해야.
 03 식사함은 식사에서부터인지 식사에서부터이었는지 살펴봄. 보기에는 살펴봄이 아리랑을 위한 시험임을 지나쳤음에. 사랑하였음은 사랑해봄은 보고싶기에 써보기에 써보았기에.
 03 먹음이니. 먹음이었으니. 사면되어보았기에.
@@ -93,527 +93,527 @@ let EXAMPLES =
 04 SAP : 빅데이터는 IoT나 센서에서 발생하는 많은 데이터에 숨겨진 패턴 찾는 것이 중요하다. 또 한편으로는, 기업들이 가지고 있는 비즈니스 데이터와 빅데이터에서 찾은 데이터를 어떻게 결합하느냐도 중요하다. 어떻게 자신이 가지고 있는 데이터와 결합할 것인지에 대한 비즈니스 시나리오를 고민 해야 한다. 기업고객이 원하는 바와 어떻게 연관시킬 것인가와 연결할 수 있어야 하고, 그런 부분이 종합적으로 고민돼 결과를 도출해야 기업이 향후 영위하는 수익창출에 도움이 될 것이라고 본다.
 04 IDC : 기업은 디지털 변혁이 필요하다. 기존에 기반기술(클라우드, 빅데이터, 소셜 비즈니스, 모바일 비즈니스 등)을 바탕으로 AI나 IoT, 로보틱스, 휴먼인터페이스, 3D 페인팅 그리고 이를 다 관장하는 보안 기술까지 모두 중요하다. 앞으로 이런 기술에 맞춰 소비자-기업 관계, 소비자 경험, 생산설비 변경 등 여러 가지가 바뀌어야 한다. 이 같은 환경이 확산되면 디지털 경제가 만들어질 것이다.
 11 씨게이트 : 기업 관점에서 보자면 데이터 폭증에 대비해 데이터를 어디에 저장하고, 데이터를 어떻게 분석·처리하며, 데이터를 어떻게 이동하고, 그것을 어떻게 비즈니스에 유용하게 쓰는지에 대해 생각해야 한다. 나아가 이 모든 데이터를 어떻게 보호하느냐 역시 고려해야 한다. 업계의 일원으로서 이런 문제를 봤을 때 당면하는 과제는 결국 어떤 솔루션을 제공해야 이 같은 문제를 극복할 수 있을까로 요약된다. 아직은 엣지 디바이스가 많지는 않지만 앞으로 더 많은 새로운 디바이스가 나올 것이다. 이 상황에 현재 보안은 필요한 만큼의 절반 정도 밖에 충족하지 못하고 있다. 여기서 사업 기회를 찾을 수 있다. 새로운 기회가 될 수 있기에 밝고 낙관적인 전망이 있다고 이야기 하고 싶다. 소비자로서는 모든 것을 통해 혜택을 누릴 수 있다. 생활이 한결 편리해질 것이다. 아무래도 가장 큰 문제는 사생활 문제와 보안이다. 결과적으로 개인은 편안한 삶을 영위하면서도 프라이버시와 보안에 신경을 써야 하고, 기술발전이 어떤 변화를 몰고 올지 역시 생각해야 한다.`
-        .trim().split('\n').filter((line) => line.length > 0 && !line.startsWith('#')).map((line) => {
-        line = line.trim();
-        return [parseInt(line.substring(0, 2)), line.substring(3)];
+    .trim().split('\n').filter((line) => line.length > 0 && !line.startsWith('#')).map((line) => {
+      line = line.trim();
+      return [parseInt(line.substring(0, 2)), line.substring(3)];
     });
 
 
-function isDefined(obj){
-    return typeof obj !== 'undefined' && obj !== null;
+function isDefined(obj: any): boolean {
+  return typeof obj !== 'undefined' && obj !== null;
 }
 
 
-function isUndefined(obj){
-    return typeof obj === 'undefined';
+function isUndefined(obj: any): boolean {
+  return typeof obj === 'undefined';
 }
 
 
-function compareMorphemes(jsmorph, opts){
-    expect(jsmorph).toBeInstanceOf(Morpheme);
-    expect(jsmorph.getId()).toBe(jsmorph.reference.getId());
-    expect(jsmorph.getTag().tagname).toBe(jsmorph.reference.getTag().name());
-    expect(jsmorph.getOriginalTag()).toBe(jsmorph.reference.getOriginalTag());
-    expect(jsmorph.getSurface()).toBe(jsmorph.reference.getSurface());
-    expect(jsmorph.getWord().reference.equals(jsmorph.reference.getWord())).toBe(true);
+function compareMorphemes(jsmorph: any, opts: any) {
+  expect(jsmorph).toBeInstanceOf(Morpheme);
+  expect(jsmorph.getId()).toBe(jsmorph.reference.getId());
+  expect(jsmorph.getTag().tagname).toBe(jsmorph.reference.getTag().name());
+  expect(jsmorph.getOriginalTag()).toBe(jsmorph.reference.getOriginalTag());
+  expect(jsmorph.getSurface()).toBe(jsmorph.reference.getSurface());
+  expect(jsmorph.getWord().reference.equals(jsmorph.reference.getWord())).toBe(true);
 
-    expect(jsmorph.getId()).toBe(jsmorph.id);
-    expect(jsmorph.getTag()).toBe(jsmorph.tag);
-    expect(jsmorph.getOriginalTag()).toBe(jsmorph.originalTag);
-    expect(jsmorph.getSurface()).toBe(jsmorph.surface);
-    expect(jsmorph.getWord()).toBe(jsmorph.word);
-    expect(jsmorph.getWord().equals(jsmorph.word)).toBe(true);
+  expect(jsmorph.getId()).toBe(jsmorph.id);
+  expect(jsmorph.getTag()).toBe(jsmorph.tag);
+  expect(jsmorph.getOriginalTag()).toBe(jsmorph.originalTag);
+  expect(jsmorph.getSurface()).toBe(jsmorph.surface);
+  expect(jsmorph.getWord()).toBe(jsmorph.word);
+  expect(jsmorph.getWord().equals(jsmorph.word)).toBe(true);
 
-    if(opts.NER && isDefined(jsmorph.reference.getEntities())){
-        let jsents = jsmorph.getEntities().map((e) => e.reference);
-        let jents = jsmorph.reference.getEntities();
-        expect(jsents.every((e) => jents.contains(e))).toBe(true);
-    }else{
-        expect(jsmorph.getEntities()).toHaveLength(0);
-    }
+  if (opts.NER && isDefined(jsmorph.reference.getEntities())) {
+    let jsents = jsmorph.getEntities().map((e: any) => e.reference);
+    let jents = jsmorph.reference.getEntities();
+    expect(jsents.every((e: any) => jents.contains(e))).toBe(true);
+  } else {
+    expect(jsmorph.getEntities()).toHaveLength(0);
+  }
 
-    expect(jsmorph.getEntities()).toEqual(jsmorph.entities);
+  expect(jsmorph.getEntities()).toEqual(jsmorph.entities);
 
-    if(opts.WSD){
-        expect(jsmorph.getWordSense()).toBe(jsmorph.reference.getWordSense());
-        expect(jsmorph.getWordSense()).toBe(jsmorph.wordSense);
-    }else{
-        expect(isUndefined(jsmorph.getWordSense())).toBe(true);
-        expect(isUndefined(jsmorph.wordSense)).toBe(true);
-    }
+  if (opts.WSD) {
+    expect(jsmorph.getWordSense()).toBe(jsmorph.reference.getWordSense());
+    expect(jsmorph.getWordSense()).toBe(jsmorph.wordSense);
+  } else {
+    expect(isUndefined(jsmorph.getWordSense())).toBe(true);
+    expect(isUndefined(jsmorph.wordSense)).toBe(true);
+  }
 
-    expect(jsmorph.isJosa()).toBe(jsmorph.reference.isJosa());
-    expect(jsmorph.isModifier()).toBe(jsmorph.reference.isModifier());
-    expect(jsmorph.isNoun()).toBe(jsmorph.reference.isNoun());
-    expect(jsmorph.isPredicate()).toBe(jsmorph.reference.isPredicate());
+  expect(jsmorph.isJosa()).toBe(jsmorph.reference.isJosa());
+  expect(jsmorph.isModifier()).toBe(jsmorph.reference.isModifier());
+  expect(jsmorph.isNoun()).toBe(jsmorph.reference.isNoun());
+  expect(jsmorph.isPredicate()).toBe(jsmorph.reference.isPredicate());
 
-    expect(
-        POS.values().every((tag) => jsmorph.hasTag(tag.tagname) === jsmorph.reference.hasTag(tag.tagname))
-    ).toBe(true);
+  expect(
+    POS.values().every((tag) => jsmorph.hasTag(tag.tagname) === jsmorph.reference.hasTag(tag.tagname))
+  ).toBe(true);
 
-    let sampled = _.sample(POS.values(), 3).map((x) => x.tagname);
-    expect(jsmorph.hasTagOneOf(...sampled)).toBe(jsmorph.reference.hasTagOneOf(...sampled));
+  let sampled = _.sampleSize(POS.values(), 3).map((x) => x.tagname);
+  expect(jsmorph.hasTagOneOf(...sampled)).toBe(jsmorph.reference.hasTagOneOf(...sampled));
 
-    expect(jsmorph.toString()).toBe(jsmorph.reference.toString());
+  expect(jsmorph.toString()).toBe(jsmorph.reference.toString());
 }
 
 
-function compareWords(jsword, opts){
-    expect(jsword).toBeInstanceOf(Word);
+function compareWords(jsword: any, opts: any) {
+  expect(jsword).toBeInstanceOf(Word);
 
-    for(const morph of jsword){
-        expect(jsword.reference.contains(morph.reference)).toBe(true);
-        compareMorphemes(morph, opts);
+  for (const morph of jsword) {
+    expect(jsword.reference.contains(morph.reference)).toBe(true);
+    compareMorphemes(morph, opts);
+  }
+
+  expect(jsword.getSurface()).toBe(jsword.reference.getSurface());
+  expect(jsword.getId()).toBe(jsword.reference.getId());
+  expect(jsword.singleLineString()).toBe(jsword.reference.singleLineString());
+
+  expect(jsword.getSurface()).toBe(jsword.surface);
+  expect(jsword.getId()).toBe(jsword.id);
+
+  if (opts.NER && isDefined(jsword.reference.getEntities())) {
+    let jsents = jsword.getEntities().map((e: any) => e.reference);
+    let jents = jsword.reference.getEntities();
+    expect(jsents.every((e: any) => jents.contains(e))).toBe(true);
+  } else {
+    expect(jsword.getEntities()).toHaveLength(0);
+  }
+
+  expect(jsword.getEntities()).toEqual(jsword.entities);
+
+  if (opts.SRL) {
+    if (isDefined(jsword.reference.getPredicateRoles())) {
+      let jsents = jsword.getPredicateRoles().map((e: any) => e.reference);
+      let jents = jsword.reference.getPredicateRoles();
+      expect(jsents.every((e: any) => jents.contains(e))).toBe(true);
     }
 
-    expect(jsword.getSurface()).toBe(jsword.reference.getSurface());
-    expect(jsword.getId()).toBe(jsword.reference.getId());
-    expect(jsword.singleLineString()).toBe(jsword.reference.singleLineString());
+    if (isDefined(jsword.reference.getArgumentRoles())) {
+      let jsents = jsword.getArgumentRoles().map((e: any) => e.reference);
+      let jents = jsword.reference.getArgumentRoles();
+      expect(jsents.every((e: any) => jents.contains(e))).toBe(true);
+    }
+  } else {
+    expect(jsword.getPredicateRoles()).toHaveLength(0);
+    expect(jsword.getArgumentRoles()).toHaveLength(0);
+  }
 
-    expect(jsword.getSurface()).toBe(jsword.surface);
-    expect(jsword.getId()).toBe(jsword.id);
+  expect(jsword.getPredicateRoles()).toEqual(jsword.predicateRoles);
+  expect(jsword.getArgumentRoles()).toEqual(jsword.argumentRoles);
 
-    if(opts.NER && isDefined(jsword.reference.getEntities())){
-        let jsents = jsword.getEntities().map((e) => e.reference);
-        let jents = jsword.reference.getEntities();
-        expect(jsents.every((e) => jents.contains(e))).toBe(true);
-    }else{
-        expect(jsword.getEntities()).toHaveLength(0);
+  if (opts.DEP) {
+    if (isDefined(jsword.reference.getGovernorEdge())) {
+      expect(
+        jsword.getGovernorEdge().reference.equals(jsword.reference.getGovernorEdge())
+      ).toBe(true);
+      expect(jsword.getGovernorEdge()).toBe(jsword.governorEdge);
     }
 
-    expect(jsword.getEntities()).toEqual(jsword.entities);
-
-    if(opts.SRL){
-        if(isDefined(jsword.reference.getPredicateRoles())){
-            let jsents = jsword.getPredicateRoles().map((e) => e.reference);
-            let jents = jsword.reference.getPredicateRoles();
-            expect(jsents.every((e) => jents.contains(e))).toBe(true);
-        }
-
-        if(isDefined(jsword.reference.getArgumentRoles())){
-            let jsents = jsword.getArgumentRoles().map((e) => e.reference);
-            let jents = jsword.reference.getArgumentRoles();
-            expect(jsents.every((e) => jents.contains(e))).toBe(true);
-        }
-    }else{
-        expect(jsword.getPredicateRoles()).toHaveLength(0);
-        expect(jsword.getArgumentRoles()).toHaveLength(0);
+    if (isDefined(jsword.reference.getDependentEdges())) {
+      let jsents = jsword.getDependentEdges().map((e: any) => e.reference);
+      let jents = jsword.reference.getDependentEdges();
+      expect(jsents.every((e: any) => jents.contains(e))).toBe(true);
     }
+  } else {
+    expect(isUndefined(jsword.getGovernorEdge())).toBe(true);
+    expect(jsword.getDependentEdges()).toHaveLength(0);
+  }
 
-    expect(jsword.getPredicateRoles()).toEqual(jsword.predicateRoles);
-    expect(jsword.getArgumentRoles()).toEqual(jsword.argumentRoles);
+  expect(jsword.getDependentEdges()).toEqual(jsword.dependentEdges);
 
-    if(opts.DEP){
-        if(isDefined(jsword.reference.getGovernorEdge())){
-            expect(
-                jsword.getGovernorEdge().reference.equals(jsword.reference.getGovernorEdge())
-            ).toBe(true);
-            expect(jsword.getGovernorEdge()).toBe(jsword.governorEdge);
-        }
+  if (opts.SYN) {
+    expect(jsword.getPhrase().reference.equals(jsword.reference.getPhrase())).toBe(true);
+    expect(jsword.getPhrase()).toEqual(jsword.phrase);
+  } else {
+    expect(isUndefined(jsword.getPhrase())).toBe(true);
+    expect(isUndefined(jsword.phrase)).toBe(true);
+  }
 
-        if(isDefined(jsword.reference.getDependentEdges())){
-            let jsents = jsword.getDependentEdges().map((e) => e.reference);
-            let jents = jsword.reference.getDependentEdges();
-            expect(jsents.every((e) => jents.contains(e))).toBe(true);
-        }
-    }else{
-        expect(isUndefined(jsword.getGovernorEdge())).toBe(true);
-        expect(jsword.getDependentEdges()).toHaveLength(0);
-    }
-
-    expect(jsword.getDependentEdges()).toEqual(jsword.dependentEdges);
-
-    if(opts.SYN){
-        expect(jsword.getPhrase().reference.equals(jsword.reference.getPhrase())).toBe(true);
-        expect(jsword.getPhrase()).toEqual(jsword.phrase);
-    }else{
-        expect(isUndefined(jsword.getPhrase())).toBe(true);
-        expect(isUndefined(jsword.phrase)).toBe(true);
-    }
-
-    expect(jsword.toString()).toBe(jsword.reference.toString());
+  expect(jsword.toString()).toBe(jsword.reference.toString());
 }
 
 
-function comparePhrase(jstree){
-    expect(jstree).toBeInstanceOf(SyntaxTree);
-    expect(jstree.getLabel().tagname).toBe(jstree.reference.getLabel().name());
-    expect(jstree.hasNonTerminals()).toBe(jstree.reference.hasNonTerminals());
-    expect(jstree.isRoot()).toBe(jstree.reference.isRoot());
-    expect(jstree.getOriginalLabel()).toBe(jstree.reference.getOriginalLabel());
-    expect(jstree.getTreeString()).toBe(jstree.reference.getTreeString().toString());
+function comparePhrase(jstree: any) {
+  expect(jstree).toBeInstanceOf(SyntaxTree);
+  expect(jstree.getLabel().tagname).toBe(jstree.reference.getLabel().name());
+  expect(jstree.hasNonTerminals()).toBe(jstree.reference.hasNonTerminals());
+  expect(jstree.isRoot()).toBe(jstree.reference.isRoot());
+  expect(jstree.getOriginalLabel()).toBe(jstree.reference.getOriginalLabel());
+  expect(jstree.getTreeString()).toBe(jstree.reference.getTreeString().toString());
 
-    expect(jstree.getLabel()).toBe(jstree.label);
-    expect(jstree.getOriginalLabel()).toBe(jstree.originalLabel);
+  expect(jstree.getLabel()).toBe(jstree.label);
+  expect(jstree.getOriginalLabel()).toBe(jstree.originalLabel);
 
-    let jsterms = jstree.getTerminals().map((t) => t.reference);
-    let jterms = jstree.reference.getTerminals();
-    expect(jsterms.every((e) => jterms.contains(e))).toBe(true);
+  let jsterms = jstree.getTerminals().map((t: any) => t.reference);
+  let jterms = jstree.reference.getTerminals();
+  expect(jsterms.every((e: any) => jterms.contains(e))).toBe(true);
 
-    let jsnterms = jstree.getNonTerminals().map((t) => t.reference);
-    let jnterms = jstree.reference.getNonTerminals();
-    expect(jsnterms.every((e) => jnterms.contains(e))).toBe(true);
+  let jsnterms = jstree.getNonTerminals().map((t: any) => t.reference);
+  let jnterms = jstree.reference.getNonTerminals();
+  expect(jsnterms.every((e: any) => jnterms.contains(e))).toBe(true);
 
-    if(!jstree.reference.isRoot()){
-        expect(jstree.getParent().reference.equals(jstree.reference.getParent())).toBe(true);
-        expect(jstree.getParent()).toEqual(jstree.parent);
-    }else{
-        expect(isUndefined(jstree.getParent())).toBe(true);
-        expect(isUndefined(jstree.parent)).toBe(true);
-    }
+  if (!jstree.reference.isRoot()) {
+    expect(jstree.getParent().reference.equals(jstree.reference.getParent())).toBe(true);
+    expect(jstree.getParent()).toEqual(jstree.parent);
+  } else {
+    expect(isUndefined(jstree.getParent())).toBe(true);
+    expect(isUndefined(jstree.parent)).toBe(true);
+  }
 
-    for(const nonterm of jstree){
-        expect(jstree.reference.contains(nonterm.reference)).toBe(true);
-        comparePhrase(nonterm);
-    }
+  for (const nonterm of jstree) {
+    expect(jstree.reference.contains(nonterm.reference)).toBe(true);
+    comparePhrase(nonterm);
+  }
 
-    expect(jstree.toString()).toBe(jstree.reference.toString());
+  expect(jstree.toString()).toBe(jstree.reference.toString());
 }
 
-function compareDepEdge(jsedge){
-    expect(jsedge).toBeInstanceOf(DepEdge);
-    expect(jsedge.getOriginalLabel()).toBe(jsedge.reference.getOriginalLabel());
-    expect(jsedge.getType().tagname).toBe(jsedge.reference.getType().name());
+function compareDepEdge(jsedge: any) {
+  expect(jsedge).toBeInstanceOf(DepEdge);
+  expect(jsedge.getOriginalLabel()).toBe(jsedge.reference.getOriginalLabel());
+  expect(jsedge.getType().tagname).toBe(jsedge.reference.getType().name());
 
-    expect(jsedge.getOriginalLabel()).toBe(jsedge.originalLabel);
-    expect(jsedge.getType()).toBe(jsedge.type);
+  expect(jsedge.getOriginalLabel()).toBe(jsedge.originalLabel);
+  expect(jsedge.getType()).toBe(jsedge.type);
 
-    let gov = jsedge.getGovernor();
-    if(isDefined(jsedge.reference.getGovernor())){
-        expect(gov).toBeDefined();
-        expect(gov.reference.equals(jsedge.reference.getGovernor())).toBe(true);
-        expect(jsedge.getSrc().reference.equals(jsedge.reference.getSrc())).toBe(true);
-        expect(gov).toBe(jsedge.getSrc());
-        expect(gov).toBe(jsedge.governor);
-        expect(jsedge.getSrc()).toBe(jsedge.src);
-    }else{
-        expect(isDefined(jsedge.reference.getGovernor())).toBe(false);
-        expect(isDefined(jsedge.reference.getSrc())).toBe(false);
-        expect(isUndefined(jsedge.getGovernor())).toBe(true);
-        expect(isUndefined(jsedge.getSrc())).toBe(true);
-        expect(isUndefined(jsedge.governor)).toBe(true);
-        expect(isUndefined(jsedge.src)).toBe(true);
-    }
+  let gov = jsedge.getGovernor();
+  if (isDefined(jsedge.reference.getGovernor())) {
+    expect(gov).toBeDefined();
+    expect(gov.reference.equals(jsedge.reference.getGovernor())).toBe(true);
+    expect(jsedge.getSrc().reference.equals(jsedge.reference.getSrc())).toBe(true);
+    expect(gov).toBe(jsedge.getSrc());
+    expect(gov).toBe(jsedge.governor);
+    expect(jsedge.getSrc()).toBe(jsedge.src);
+  } else {
+    expect(isDefined(jsedge.reference.getGovernor())).toBe(false);
+    expect(isDefined(jsedge.reference.getSrc())).toBe(false);
+    expect(isUndefined(jsedge.getGovernor())).toBe(true);
+    expect(isUndefined(jsedge.getSrc())).toBe(true);
+    expect(isUndefined(jsedge.governor)).toBe(true);
+    expect(isUndefined(jsedge.src)).toBe(true);
+  }
 
-    expect(jsedge.getDependent().reference.equals(jsedge.reference.getDependent())).toBe(true)
-    expect(jsedge.getDest().reference.equals(jsedge.reference.getDest())).toBe(true);
-    expect(jsedge.getDependent()).toBe(jsedge.getDest());
-    expect(jsedge.getDependent()).toBe(jsedge.dependent);
-    expect(jsedge.getDest()).toBe(jsedge.dest);
+  expect(jsedge.getDependent().reference.equals(jsedge.reference.getDependent())).toBe(true)
+  expect(jsedge.getDest().reference.equals(jsedge.reference.getDest())).toBe(true);
+  expect(jsedge.getDependent()).toBe(jsedge.getDest());
+  expect(jsedge.getDependent()).toBe(jsedge.dependent);
+  expect(jsedge.getDest()).toBe(jsedge.dest);
 
-    if(isDefined(jsedge.reference.getDepType())){
-        expect(jsedge.getDepType().tagname).toBe(jsedge.reference.getDepType().name());
-        expect(jsedge.getLabel().tagname).toBe(jsedge.reference.getLabel().name());
-        expect(jsedge.getDepType()).toBe(jsedge.getLabel());
-        expect(jsedge.getDepType()).toBe(jsedge.depType);
-        expect(jsedge.getLabel()).toBe(jsedge.label);
-    }else{
-        expect(isDefined(jsedge.reference.getDepType())).toBe(false);
-        expect(isDefined(jsedge.reference.getLabel())).toBe(false);
-        expect(isUndefined(jsedge.getLabel())).toBe(true);
-        expect(isUndefined(jsedge.getDepType())).toBe(true);
-        expect(isUndefined(jsedge.label)).toBe(true);
-        expect(isUndefined(jsedge.depType)).toBe(true);
-    }
-
-    expect(jsedge.toString()).toBe(jsedge.reference.toString());
-}
-
-function compareRoleEdge(jsedge){
-    expect(jsedge).toBeInstanceOf(RoleEdge);
-    expect(jsedge.getOriginalLabel()).toBe(jsedge.reference.getOriginalLabel());
+  if (isDefined(jsedge.reference.getDepType())) {
+    expect(jsedge.getDepType().tagname).toBe(jsedge.reference.getDepType().name());
     expect(jsedge.getLabel().tagname).toBe(jsedge.reference.getLabel().name());
-    expect(jsedge.getOriginalLabel()).toBe(jsedge.originalLabel);
+    expect(jsedge.getDepType()).toBe(jsedge.getLabel());
+    expect(jsedge.getDepType()).toBe(jsedge.depType);
     expect(jsedge.getLabel()).toBe(jsedge.label);
+  } else {
+    expect(isDefined(jsedge.reference.getDepType())).toBe(false);
+    expect(isDefined(jsedge.reference.getLabel())).toBe(false);
+    expect(isUndefined(jsedge.getLabel())).toBe(true);
+    expect(isUndefined(jsedge.getDepType())).toBe(true);
+    expect(isUndefined(jsedge.label)).toBe(true);
+    expect(isUndefined(jsedge.depType)).toBe(true);
+  }
 
-    let gov = jsedge.getPredicate();
-    if(isDefined(jsedge.reference.getPredicate())){
-        expect(gov.reference.equals(jsedge.reference.getPredicate())).toBe(true);
-        expect(jsedge.getSrc().reference.equals(jsedge.reference.getSrc())).toBe(true);
-        expect(gov).toBe(jsedge.getSrc());
-        expect(gov).toBe(jsedge.predicate);
-        expect(jsedge.getSrc()).toBe(jsedge.src);
-    }else{
-        expect(isDefined(jsedge.reference.getPredicate())).toBe(false);
-        expect(isDefined(jsedge.reference.getSrc())).toBe(false);
-        expect(isUndefined(jsedge.getPredicate())).toBe(true);
-        expect(isUndefined(jsedge.getSrc())).toBe(true);
-        expect(isUndefined(jsedge.predicate)).toBe(true);
-        expect(isUndefined(jsedge.src)).toBe(true);
-    }
-
-    expect(jsedge.getArgument().reference.equals(jsedge.reference.getArgument())).toBe(true);
-    expect(jsedge.getDest().reference.equals(jsedge.reference.getDest())).toBe(true);
-    expect(jsedge.getArgument()).toBe(jsedge.getDest());
-    expect(jsedge.getArgument()).toBe(jsedge.argument);
-    expect(jsedge.getDest()).toBe(jsedge.dest);
-
-    expect(jsedge.toString()).toBe(jsedge.reference.toString());
+  expect(jsedge.toString()).toBe(jsedge.reference.toString());
 }
 
-function compareEntity(jsentity){
-    expect(jsentity).toBeInstanceOf(Entity);
-    expect(jsentity.getLabel().tagname).toBe(jsentity.reference.getLabel().name());
-    expect(jsentity.getOriginalLabel()).toBe(jsentity.reference.getOriginalLabel());
-    expect(jsentity.getSurface()).toBe(jsentity.reference.getSurface());
-    expect(jsentity.getFineLabel()).toBe(jsentity.reference.getFineLabel());
-    expect(jsentity.getLabel()).toBe(jsentity.label);
-    expect(jsentity.getOriginalLabel()).toBe(jsentity.originalLabel);
-    expect(jsentity.getSurface()).toBe(jsentity.surface);
-    expect(jsentity.getFineLabel()).toBe(jsentity.fineLabel);
-    // jsentity.getCorefGroup().reference.equals(jsentity.referecnce.getCorefGroup()).should.be.true()
+function compareRoleEdge(jsedge: any) {
+  expect(jsedge).toBeInstanceOf(RoleEdge);
+  expect(jsedge.getOriginalLabel()).toBe(jsedge.reference.getOriginalLabel());
+  expect(jsedge.getLabel().tagname).toBe(jsedge.reference.getLabel().name());
+  expect(jsedge.getOriginalLabel()).toBe(jsedge.originalLabel);
+  expect(jsedge.getLabel()).toBe(jsedge.label);
 
-    for(const i of _.range(jsentity.length)){
-        let morph = jsentity[i];
-        expect(morph).toBeInstanceOf(Morpheme);
-        expect(jsentity.reference.contains(morph.reference)).toBe(true);
-        expect(jsentity.reference.get(i).equals(morph.reference)).toBe(true);
-    }
+  let gov = jsedge.getPredicate();
+  if (isDefined(jsedge.reference.getPredicate())) {
+    expect(gov.reference.equals(jsedge.reference.getPredicate())).toBe(true);
+    expect(jsedge.getSrc().reference.equals(jsedge.reference.getSrc())).toBe(true);
+    expect(gov).toBe(jsedge.getSrc());
+    expect(gov).toBe(jsedge.predicate);
+    expect(jsedge.getSrc()).toBe(jsedge.src);
+  } else {
+    expect(isDefined(jsedge.reference.getPredicate())).toBe(false);
+    expect(isDefined(jsedge.reference.getSrc())).toBe(false);
+    expect(isUndefined(jsedge.getPredicate())).toBe(true);
+    expect(isUndefined(jsedge.getSrc())).toBe(true);
+    expect(isUndefined(jsedge.predicate)).toBe(true);
+    expect(isUndefined(jsedge.src)).toBe(true);
+  }
 
-    expect(jsentity.toString()).toBe(jsentity.reference.toString());
+  expect(jsedge.getArgument().reference.equals(jsedge.reference.getArgument())).toBe(true);
+  expect(jsedge.getDest().reference.equals(jsedge.reference.getDest())).toBe(true);
+  expect(jsedge.getArgument()).toBe(jsedge.getDest());
+  expect(jsedge.getArgument()).toBe(jsedge.argument);
+  expect(jsedge.getDest()).toBe(jsedge.dest);
+
+  expect(jsedge.toString()).toBe(jsedge.reference.toString());
 }
 
-function compareSentence(jssent, opts={}){
-    expect(jssent).toBeInstanceOf(Sentence);
-    expect(jssent.toString()).toBe(jssent.reference.toString());
-    expect(jssent.singleLineString()).toBe(jssent.reference.singleLineString());
+function compareEntity(jsentity: any) {
+  expect(jsentity).toBeInstanceOf(Entity);
+  expect(jsentity.getLabel().tagname).toBe(jsentity.reference.getLabel().name());
+  expect(jsentity.getOriginalLabel()).toBe(jsentity.reference.getOriginalLabel());
+  expect(jsentity.getSurface()).toBe(jsentity.reference.getSurface());
+  expect(jsentity.getFineLabel()).toBe(jsentity.reference.getFineLabel());
+  expect(jsentity.getLabel()).toBe(jsentity.label);
+  expect(jsentity.getOriginalLabel()).toBe(jsentity.originalLabel);
+  expect(jsentity.getSurface()).toBe(jsentity.surface);
+  expect(jsentity.getFineLabel()).toBe(jsentity.fineLabel);
+  // jsentity.getCorefGroup().reference.equals(jsentity.referecnce.getCorefGroup()).should.be.true()
 
-    expect(jssent.surfaceString()).toBe(jssent.reference.surfaceString());
-    expect(jssent.surfaceString('//')).toBe(jssent.reference.surfaceString('//'));
+  for (const i of _.range(jsentity.length)) {
+    let morph = jsentity[i];
+    expect(morph).toBeInstanceOf(Morpheme);
+    expect(jsentity.reference.contains(morph.reference)).toBe(true);
+    expect(jsentity.reference.get(i).equals(morph.reference)).toBe(true);
+  }
 
-    if(opts.NER){
-        for(const e of jssent.getEntities()){
-            expect(jssent.reference.getEntities().contains(e.reference)).toBe(true);
-            compareEntity(e);
-        }
-    }else{
-        expect(jssent.getEntities()).toHaveLength(0);
-    }
-    expect(jssent.getEntities()).toEqual(jssent.entities);
-
-    if(opts.DEP){
-        for(const e of jssent.getDependencies()){
-            expect(jssent.reference.getDependencies().contains(e.reference)).toBe(true);
-            compareDepEdge(e);
-        }
-    }else{
-        expect(jssent.getDependencies()).toHaveLength(0);
-    }
-    expect(jssent.getDependencies()).toEqual(jssent.dependencies);
-
-    if(opts.SRL){
-        for(const e of jssent.getRoles()){
-            expect(jssent.reference.getRoles().contains(e.reference)).toBe(true);
-            compareRoleEdge(e);
-        }
-    }else{
-        expect(jssent.getRoles()).toHaveLength(0);
-    }
-    expect(jssent.getRoles()).toEqual(jssent.roles);
-
-    if(opts.SYN){
-        comparePhrase(jssent.getSyntaxTree());
-        expect(jssent.getSyntaxTree()).toEqual(jssent.syntaxTree);
-    }else{
-        expect(isUndefined(jssent.getSyntaxTree())).toBe(true);
-        expect(isUndefined(jssent.syntaxTree)).toBe(true);
-    }
-
-    for (const word of jssent.getNouns()){
-        expect(word).toBeInstanceOf(Word);
-        expect(jssent.reference.getNouns().contains(word.reference)).toBe(true);
-    }
-
-    for (const word of jssent.getVerbs()){
-        expect(word).toBeInstanceOf(Word);
-        expect(jssent.reference.getVerbs().contains(word.reference)).toBe(true);
-    }
-
-    for (const word of jssent.getModifiers()){
-        expect(word).toBeInstanceOf(Word);
-        //jssent.reference.getModifiers().contains(word.reference).should.be.true();
-    }
-
-    for (const word of jssent){
-        expect(jssent.reference.contains(word.reference)).toBe(true);
-        compareWords(word, opts);
-    }
+  expect(jsentity.toString()).toBe(jsentity.reference.toString());
 }
 
-const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
+function compareSentence(jssent: any, opts: any = {}) {
+  expect(jssent).toBeInstanceOf(Sentence);
+  expect(jssent.toString()).toBe(jssent.reference.toString());
+  expect(jssent.singleLineString()).toBe(jssent.reference.singleLineString());
+
+  expect(jssent.surfaceString()).toBe(jssent.reference.surfaceString());
+  expect(jssent.surfaceString('//')).toBe(jssent.reference.surfaceString('//'));
+
+  if (opts.NER) {
+    for (const e of jssent.getEntities()) {
+      expect(jssent.reference.getEntities().contains(e.reference)).toBe(true);
+      compareEntity(e);
+    }
+  } else {
+    expect(jssent.getEntities()).toHaveLength(0);
+  }
+  expect(jssent.getEntities()).toEqual(jssent.entities);
+
+  if (opts.DEP) {
+    for (const e of jssent.getDependencies()) {
+      expect(jssent.reference.getDependencies().contains(e.reference)).toBe(true);
+      compareDepEdge(e);
+    }
+  } else {
+    expect(jssent.getDependencies()).toHaveLength(0);
+  }
+  expect(jssent.getDependencies()).toEqual(jssent.dependencies);
+
+  if (opts.SRL) {
+    for (const e of jssent.getRoles()) {
+      expect(jssent.reference.getRoles().contains(e.reference)).toBe(true);
+      compareRoleEdge(e);
+    }
+  } else {
+    expect(jssent.getRoles()).toHaveLength(0);
+  }
+  expect(jssent.getRoles()).toEqual(jssent.roles);
+
+  if (opts.SYN) {
+    comparePhrase(jssent.getSyntaxTree());
+    expect(jssent.getSyntaxTree()).toEqual(jssent.syntaxTree);
+  } else {
+    expect(isUndefined(jssent.getSyntaxTree())).toBe(true);
+    expect(isUndefined(jssent.syntaxTree)).toBe(true);
+  }
+
+  for (const word of jssent.getNouns()) {
+    expect(word).toBeInstanceOf(Word);
+    expect(jssent.reference.getNouns().contains(word.reference)).toBe(true);
+  }
+
+  for (const word of jssent.getVerbs()) {
+    expect(word).toBeInstanceOf(Word);
+    expect(jssent.reference.getVerbs().contains(word.reference)).toBe(true);
+  }
+
+  for (const word of jssent.getModifiers()) {
+    expect(word).toBeInstanceOf(Word);
+    //jssent.reference.getModifiers().contains(word.reference).should.be.true();
+  }
+
+  for (const word of jssent) {
+    expect(jssent.reference.contains(word.reference)).toBe(true);
+    compareWords(word, opts);
+  }
+}
+
+const snooze = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 
 export default function () {
-    describe('proc Module', () => {
-        let splitter;
-        let tagger;
-        let parser;
-        let entityRecog;
-        let roleLabeler;
+  describe('proc Module', () => {
+    let splitter: SentenceSplitter;
+    let tagger: Tagger;
+    let parser: Parser;
+    let entityRecog: EntityRecognizer;
+    let roleLabeler: RoleLabeler;
 
-        beforeAll(async() => {
-            splitter = new SentenceSplitter(OKT);
-            tagger = new Tagger(OKT);
-            parser = new Parser(HNN);
-            entityRecog = new EntityRecognizer(ETRI, {apiKey: process.env['API_KEY']});
-            roleLabeler = new RoleLabeler(ETRI, {apiKey: process.env['API_KEY']});
-        });
-
-        describe('SentenceSplitter', () => {
-            it('can handle empty sentence', async() => {
-                expect(await splitter('')).toHaveLength(0);
-                expect(splitter.sentencesSync('')).toHaveLength(0);
-            });
-
-            it('can convert Java output correctly', async() => {
-                for (const [dummy, line] of EXAMPLES) {
-                    let res = await splitter(line);
-                    expect(res).toBeInstanceOf(Array);
-                    expect(res[0]).toEqual(expect.arrayContaining([]));
-
-                    let resSync = splitter.sentencesSync(line);
-                    expect(res).toEqual(resSync);
-
-                    let res2 = await splitter([line]);
-                    expect(res).toEqual(res2);
-
-                    let resSync2 = splitter.sentencesSync([line]);
-                    expect(res2).toEqual(resSync2);
-                }
-            });
-        });
-
-        describe('Tagger', () => {
-            it('can handle empty sentence', async() => {
-                expect(await tagger('')).toHaveLength(0);
-                expect(tagger.tagSync('')).toHaveLength(0);
-            });
-
-            it('can convert Java output correctly', async() => {
-                for (const [cnt, line] of EXAMPLES) {
-                    process.stdout.write('.');
-                    let para = await tagger(line);
-                    expect(para).toBeInstanceOf(Array);
-                    for (const sent of para)
-                        compareSentence(sent);
-
-                    let paraSync = tagger.tagSync(line);
-                    expect(_.zip(para, paraSync).every((tuple) => tuple[0].equals(tuple[1]))).toBe(true);
-
-                    let single = await tagger.tagSentence(line);
-                    expect(single).toBeInstanceOf(Array);
-                    expect(single).toHaveLength(1);
-
-                    let singleSync = tagger.tagSentenceSync(line);
-                    expect(_.zip(single, singleSync).every((tuple) => tuple[0].equals(tuple[1]))).toBe(true);
-
-                    let singles = await tagger.tagSentence(para.map((x) => x.surfaceString()));
-                    expect(para).toHaveLength(singles.length);
-
-                    let singlesSync = tagger.tagSentenceSync(para.map((x) => x.surfaceString()));
-                    expect(_.zip(singles, singlesSync).every((tuple) => tuple[0].equals(tuple[1]))).toBe(true);
-                }
-            });
-        });
-
-        describe('Parser', () => {
-            it('can handle empty sentence', async() => {
-                expect(await parser('')).toHaveLength(0);
-                expect(parser.analyzeSync('')).toHaveLength(0);
-            });
-
-            it('can convert Java output correctly', async() => {
-                for (const [cnt, line] of EXAMPLES) {
-                    process.stdout.write('.');
-                    let para = await parser(line);
-                    expect(para).toBeInstanceOf(Array);
-                    for (const sent of para)
-                        compareSentence(sent, {SYN: true, DEP: true});
-
-                    let paraSync = parser.analyzeSync(line);
-                    expect(_.zip(para, paraSync).every((tuple) => tuple[0].equals(tuple[1]))).toBe(true);
-
-                    let singles = await parser(...para.map((x) => x.surfaceString()));
-                    expect(para).toHaveLength(singles.length);
-
-                    let singlesSync = parser.analyzeSync(...para.map((x) => x.surfaceString()));
-                    expect(_.zip(singles, singlesSync).every((tuple) => tuple[0].equals(tuple[1]))).toBe(true);
-                }
-            });
-
-            it('can relay outputs', async() => {
-                for (const [cnt, line] of EXAMPLES) {
-                    process.stdout.write('.');
-                    let splits = await splitter(line);
-                    let tagged = await tagger.tagSentence(splits);
-                    expect(tagged).toHaveLength(splits.length);
-
-                    let taggedSync = tagger.tagSentenceSync(splits);
-                    expect(_.zip(tagged, taggedSync).every((tuple) => tuple[0].equals(tuple[1]))).toBe(true);
-
-                    let para = await parser(tagged);
-                    expect(para).toHaveLength(tagged.length);
-
-                    let paraSync = parser.analyzeSync(tagged);
-                    expect(_.zip(para, paraSync).every((tuple) => tuple[0].equals(tuple[1]))).toBe(true);
-
-                    expect(para).toBeInstanceOf(Array);
-                    for (const sent of para)
-                        compareSentence(sent, {SYN: true, DEP: true});
-                }
-            });
-        });
-
-        describe('RoleLabeler', () => {
-            it('can handle empty sentence', async() => {
-                expect(await roleLabeler('')).toHaveLength(0);
-                expect(roleLabeler.analyzeSync('')).toHaveLength(0);
-            });
-
-            it('can convert Java output correctly', async() => {
-                for (const [cnt, line] of _.sample(EXAMPLES, 5)) {
-                    await snooze(_.random(5000, 10000));
-
-                    let para = await roleLabeler(line);
-                    expect(para).toBeInstanceOf(Array);
-                    for (const sent of para)
-                        compareSentence(sent, {SRL: true, DEP: true, NER: true, WSD: true});
-
-                    let paraSync = roleLabeler.analyzeSync(line);
-                    expect(_.zip(para, paraSync).every((tuple) => tuple[0].equals(tuple[1]))).toBe(true);
-
-                    let singles = await roleLabeler(...para.map((x) => x.surfaceString()));
-                    expect(para).toHaveLength(singles.length);
-
-                    let singlesSync = roleLabeler.analyzeSync(...para.map((x) => x.surfaceString()));
-                    expect(_.zip(singles, singlesSync).every((tuple) => tuple[0].equals(tuple[1]))).toBe(true);
-                }
-            });
-        });
-
-        describe('EntityRecognizer', () => {
-            it('can handle empty sentence', async() => {
-                expect(await entityRecog('')).toHaveLength(0);
-            });
-
-            it('can convert Java output correctly', async() => {
-                for (const [cnt, line] of _.sample(EXAMPLES, 5)) {
-                    await snooze(_.random(5000, 10000));
-
-                    let para = await entityRecog(line);
-                    expect(para).toBeInstanceOf(Array);
-                    for (const sent of para)
-                        compareSentence(sent, {NER: true, WSD: true});
-
-                    let paraSync = entityRecog.analyzeSync(line);
-                    expect(_.zip(para, paraSync).every((tuple) => tuple[0].equals(tuple[1]))).toBe(true);
-
-                    let singles = await entityRecog(...para.map((x) => x.surfaceString()));
-                    expect(para).toHaveLength(singles.length);
-
-                    let singlesSync = entityRecog.analyzeSync(...para.map((x) => x.surfaceString()));
-                    expect(_.zip(singles, singlesSync).every((tuple) => tuple[0].equals(tuple[1]))).toBe(true);
-                }
-            });
-        });
+    beforeAll(async () => {
+      splitter = new SentenceSplitter(OKT);
+      tagger = new Tagger(OKT);
+      parser = new Parser(HNN);
+      entityRecog = new EntityRecognizer(ETRI, { apiKey: process.env['API_KEY'] });
+      roleLabeler = new RoleLabeler(ETRI, { apiKey: process.env['API_KEY'] });
     });
+
+    describe('SentenceSplitter', () => {
+      it('can handle empty sentence', async () => {
+        expect(await splitter('')).toHaveLength(0);
+        expect(splitter.sentencesSync('')).toHaveLength(0);
+      });
+
+      it('can convert Java output correctly', async () => {
+        for (const [dummy, line] of EXAMPLES) {
+          let res = await splitter(line);
+          expect(res).toBeInstanceOf(Array);
+          expect(res[0]).toEqual(expect.arrayContaining([]));
+
+          let resSync = splitter.sentencesSync(line as string);
+          expect(res).toEqual(resSync);
+
+          let res2 = await splitter([line]);
+          expect(res).toEqual(res2);
+
+          let resSync2 = splitter.sentencesSync(...[line as string]);
+          expect(res2).toEqual(resSync2);
+        }
+      });
+    });
+
+    describe('Tagger', () => {
+      it('can handle empty sentence', async () => {
+        expect(await tagger('')).toHaveLength(0);
+        expect(tagger.tagSync('')).toHaveLength(0);
+      });
+
+      it('can convert Java output correctly', async () => {
+        for (const [cnt, line] of EXAMPLES) {
+          process.stdout.write('.');
+          let para = await tagger(line);
+          expect(para).toBeInstanceOf(Array);
+          for (const sent of para)
+            compareSentence(sent);
+
+          let paraSync = tagger.tagSync(line);
+          expect(_.zip(para, paraSync).every((tuple: any) => tuple[0].equals(tuple[1]))).toBe(true);
+
+          let single = await tagger.tagSentence(line);
+          expect(single).toBeInstanceOf(Array);
+          expect(single).toHaveLength(1);
+
+          let singleSync = tagger.tagSentenceSync(line);
+          expect(_.zip(single, singleSync).every((tuple: any) => tuple[0].equals(tuple[1]))).toBe(true);
+
+          let singles = await tagger.tagSentence(para.map((x: any) => x.surfaceString()));
+          expect(para).toHaveLength(singles.length);
+
+          let singlesSync = tagger.tagSentenceSync(para.map((x: any) => x.surfaceString()));
+          expect(_.zip(singles, singlesSync).every((tuple: any) => tuple[0].equals(tuple[1]))).toBe(true);
+        }
+      });
+    });
+
+    describe('Parser', () => {
+      it('can handle empty sentence', async () => {
+        expect(await parser('')).toHaveLength(0);
+        expect(parser.analyzeSync('')).toHaveLength(0);
+      });
+
+      it('can convert Java output correctly', async () => {
+        for (const [cnt, line] of EXAMPLES) {
+          process.stdout.write('.');
+          let para = await parser(line);
+          expect(para).toBeInstanceOf(Array);
+          for (const sent of para)
+            compareSentence(sent, { SYN: true, DEP: true });
+
+          let paraSync = parser.analyzeSync(line);
+          expect(_.zip(para, paraSync).every((tuple: any) => tuple[0].equals(tuple[1]))).toBe(true);
+
+          let singles = await parser(...para.map((x: any) => x.surfaceString()));
+          expect(para).toHaveLength(singles.length);
+
+          let singlesSync = parser.analyzeSync(...para.map((x: any) => x.surfaceString()));
+          expect(_.zip(singles, singlesSync).every((tuple: any) => tuple[0].equals(tuple[1]))).toBe(true);
+        }
+      });
+
+      it('can relay outputs', async () => {
+        for (const [cnt, line] of EXAMPLES) {
+          process.stdout.write('.');
+          let splits = await splitter(line);
+          let tagged = await tagger.tagSentence(splits);
+          expect(tagged).toHaveLength(splits.length);
+
+          let taggedSync = tagger.tagSentenceSync(splits);
+          expect(_.zip(tagged, taggedSync).every((tuple: any) => tuple[0].equals(tuple[1]))).toBe(true);
+
+          let para = await parser(tagged);
+          expect(para).toHaveLength(tagged.length);
+
+          let paraSync = parser.analyzeSync(tagged);
+          expect(_.zip(para, paraSync).every((tuple: any) => tuple[0].equals(tuple[1]))).toBe(true);
+
+          expect(para).toBeInstanceOf(Array);
+          for (const sent of para)
+            compareSentence(sent, { SYN: true, DEP: true });
+        }
+      });
+    });
+
+    describe('RoleLabeler', () => {
+      it('can handle empty sentence', async () => {
+        expect(await roleLabeler('')).toHaveLength(0);
+        expect(roleLabeler.analyzeSync('')).toHaveLength(0);
+      });
+
+      it('can convert Java output correctly', async () => {
+        for (const [cnt, line] of _.sampleSize(EXAMPLES, 5)) {
+          await snooze(_.random(5000, 10000));
+
+          let para = await roleLabeler(line);
+          expect(para).toBeInstanceOf(Array);
+          for (const sent of para)
+            compareSentence(sent, { SRL: true, DEP: true, NER: true, WSD: true });
+
+          let paraSync = roleLabeler.analyzeSync(line);
+          expect(_.zip(para, paraSync).every((tuple: any) => tuple[0].equals(tuple[1]))).toBe(true);
+
+          let singles = await roleLabeler(...para.map((x: any) => x.surfaceString()));
+          expect(para).toHaveLength(singles.length);
+
+          let singlesSync = roleLabeler.analyzeSync(...para.map((x: any) => x.surfaceString()));
+          expect(_.zip(singles, singlesSync).every((tuple: any) => tuple[0].equals(tuple[1]))).toBe(true);
+        }
+      });
+    });
+
+    describe('EntityRecognizer', () => {
+      it('can handle empty sentence', async () => {
+        expect(await entityRecog('')).toHaveLength(0);
+      });
+
+      it('can convert Java output correctly', async () => {
+        for (const [cnt, line] of _.sampleSize(EXAMPLES, 5)) {
+          await snooze(_.random(5000, 10000));
+
+          let para = await entityRecog(line);
+          expect(para).toBeInstanceOf(Array);
+          for (const sent of para)
+            compareSentence(sent, { NER: true, WSD: true });
+
+          let paraSync = entityRecog.analyzeSync(line);
+          expect(_.zip(para, paraSync).every((tuple: any) => tuple[0].equals(tuple[1]))).toBe(true);
+
+          let singles = await entityRecog(...para.map((x: any) => x.surfaceString()));
+          expect(para).toHaveLength(singles.length);
+
+          let singlesSync = entityRecog.analyzeSync(...para.map((x: any) => x.surfaceString()));
+          expect(_.zip(singles, singlesSync).every((tuple: any) => tuple[0].equals(tuple[1]))).toBe(true);
+        }
+      });
+    });
+  });
 }

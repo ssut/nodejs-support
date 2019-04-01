@@ -89,7 +89,7 @@ export class _JVM {
     if (Array.isArray(array))
       return array.map(itemConverter);
 
-    let result = [];
+    let result: any[] = [];
     let it = (array as any).iterator();
     while (it.hasNext()) {
       result.push(itemConverter(it.next()));

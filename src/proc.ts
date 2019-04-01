@@ -145,7 +145,7 @@ export class SentenceSplitter extends Function {
    * @returns {Sentence} 분리된 문장
    */
   static sentencesSync(paragraph: Word[]): Sentence[] {
-    let sent = [];
+    let sent: any[] = [];
     for (let word of paragraph) {
       sent.push((word as any).getReference());
     }
@@ -228,10 +228,10 @@ export class Tagger extends Function {
    * @param {...(string|string[])} text 분석할 문단들. 텍스트와 string 리스트 혼용 가능. (가변인자)
    * @returns {Sentence[]} 분석된 결과 (Flattened list)
    */
-  async tag(...text: any[]): Promise<Sentence[]> {
-    let result = [];
+  async tag(...text: (string | string[])[]): Promise<Sentence[]> {
+    let result: Sentence[] = [];
     for (let paragraph of text) {
-      let promiseResult;
+      let promiseResult: Sentence[];
       if (Array.isArray(paragraph)) {
         promiseResult = await this.tag(...paragraph);
         result.push(...promiseResult);

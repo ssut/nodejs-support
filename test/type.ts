@@ -79,20 +79,20 @@ export default function () {
           SET_NOUNS];
 
         expect(Object.keys(map).sort()).toEqual(POS.values()
-          .filter((x: any) => x.tagname !== 'TEMP').map((x: any) => x.tagname).sort());
+          .filter((x) => x.tagname !== 'TEMP').map((x: any) => x.tagname).sort());
 
         for (const [tag, setup] of Object.entries(map)) {
           for (const target of tagset) {
-            expect(target(POS[tag])).toBe(setup.includes(target));
-            expect(POS[tag]).toBe(POS.withName(tag));
+            expect(target((POS as any)[tag])).toBe(setup.includes(target));
+            expect((POS as any)[tag]).toBe(POS.withName(tag));
           }
         }
       });
 
       it('belongs to some partial tags', () => {
-        let partialCodes = [];
+        let partialCodes: any[] = [];
         for (const tag of POS.values()) {
-          if (tag !== POS.TEMP) {
+          if (tag !== (POS as any).TEMP) {
             let name = tag.tagname;
 
             _.range(1, name.length + 1).forEach((l) => {
@@ -106,7 +106,7 @@ export default function () {
         }
 
         for (const tag of POS.values()) {
-          if (tag !== POS.TEMP) {
+          if (tag !== (POS as any).TEMP) {
             if (tag.isUnknown()) {
               for (const code of partialCodes) {
                 if (code.toUpperCase() === 'N') {
@@ -138,7 +138,7 @@ export default function () {
         });
 
         for (const code of codes) {
-          expect(PhraseTag.withName(code)).toBe(PhraseTag[code]);
+          expect(PhraseTag.withName(code)).toBe((PhraseTag as any)[code]);
         }
       });
     });
@@ -156,7 +156,7 @@ export default function () {
         });
 
         for (const code of codes) {
-          expect(DependencyTag.withName(code)).toBe(DependencyTag[code]);
+          expect(DependencyTag.withName(code)).toBe((DependencyTag as any)[code]);
         }
       });
     });
@@ -174,7 +174,7 @@ export default function () {
         });
 
         for (const code of codes) {
-          expect(RoleType.withName(code)).toBe(RoleType[code]);
+          expect(RoleType.withName(code)).toBe((RoleType as any)[code]);
         }
       });
     });
@@ -192,7 +192,7 @@ export default function () {
         });
 
         for (const code of codes) {
-          expect(CoarseEntityType.withName(code)).toBe(CoarseEntityType[code]);
+          expect(CoarseEntityType.withName(code)).toBe((CoarseEntityType as any)[code]);
         }
       });
     });
