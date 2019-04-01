@@ -1196,7 +1196,15 @@ export class RoleEdge extends DAGEdge {
    * @param {Word[]} [value.modifiers=undefined] 논항의 수식어구들
    * @param {string} [value.originalLabel=undefined] 의미역 구조 표지자의 원본분석기 표기
    */
-  constructor(value: any) {
+  constructor(value: {
+    predicate: Word;
+    argument: Word;
+    label: string | RoleType;
+    modifiers?: Word[];
+    originalLabel?: string;
+
+    [key: string]: any;
+  }) {
     typeCheck([value.label], 'string', 'RoleType');
     typeCheck([value.originalLabel], 'undefined', 'string');
 
@@ -1209,7 +1217,7 @@ export class RoleEdge extends DAGEdge {
 
     value.src = value.predicate;
     value.dest = value.argument;
-    super(value);
+    super(value as any);
 
     this._modifiers = value.modifiers;
     this._originalLabel = value.originalLabel;
@@ -1666,12 +1674,12 @@ export class Word extends ImmutableArray<Morpheme> {
    * @private
    * @type {string}
    */
-  _surface: string;
+  private _surface: string;
   /**
    * 어절의 문장 내 위치입니다.
    * @type {number}
    */
-  id!: number;
+  public id!: number;
   /**
    * 구문분석을 했다면, 현재 어절이 속한 직속 상위 구구조(Phrase)를 돌려줍니다.
    *
@@ -1726,7 +1734,7 @@ export class Word extends ImmutableArray<Morpheme> {
    *
    * @type {DepEdge[]}
    */
-  dependentEdges: DepEdge[] = [];
+  public dependentEdges: DepEdge[] = [];
   /**
    *
    * 의존구문분석을 했다면, 현재 어절이 의존소인 상위 의존구문 구조의 값을 돌려줍니다.
@@ -1755,7 +1763,7 @@ export class Word extends ImmutableArray<Morpheme> {
    * * {@link module:koalanlp/data.DepEdge|DepEdge} 의존구문구조의 저장형태
    * @type {DepEdge}
    */
-  governorEdge!: DepEdge;
+  public governorEdge!: DepEdge;
   /**
    * 의미역 분석을 했다면, 현재 어절이 술어로 기능하는 하위 의미역 구조의 목록을 돌려줌.
    *
@@ -1782,7 +1790,7 @@ export class Word extends ImmutableArray<Morpheme> {
    *
    * @type {RoleEdge[]}
    */
-  argumentRoles: RoleEdge[] = [];
+  public argumentRoles: RoleEdge[] = [];
   /**
    * 의미역 분석을 했다면, 현재 어절이 논항인 상위 의미역 구조를 돌려줌.
    *
@@ -1818,7 +1826,11 @@ export class Word extends ImmutableArray<Morpheme> {
    * @param {!Morpheme[]} value.morphemes 어절에 포함되는 형태소의 목록
    * @param {*} [value.reference=undefined] Java 어절 객체
    */
-  constructor(value: any) {
+  constructor(value: {
+    surface: string;
+    morphemes: Morpheme[];
+    reference?: any;
+  }) {
     super(value.morphemes, 'Morpheme' as any);
 
     typeCheck([value.surface], 'string');
@@ -2180,7 +2192,7 @@ export class Sentence extends ImmutableArray<Word> {
    *
    * @type {DepEdge[]}
    */
-  dependencies: DepEdge[] = [];
+  dependencies: DepEdge[];
   /**
    * 의미역 분석을 했다면, 문장에 포함된 의미역 구조의 목록을 돌려줌.
    *
@@ -2207,7 +2219,7 @@ export class Sentence extends ImmutableArray<Word> {
    *
    * @type {RoleEdge[]}
    */
-  roles: RoleEdge[] = [];
+  roles: RoleEdge[];
   /**
    * 개체명 분석을 했다면, 문장의 모든 개체명 목록을 돌려줍니다.
    *
@@ -2232,7 +2244,7 @@ export class Sentence extends ImmutableArray<Word> {
    *
    * @type {Entity[]}
    */
-  entities: Entity[] = [];
+  entities: Entity[];
   /**
    * 문장 내에 포함된 공통 지시어 또는 대용어들의 묶음을 제공합니다.
    *
@@ -2258,7 +2270,7 @@ export class Sentence extends ImmutableArray<Word> {
    *
    * @type {CoreferenceGroup[]}
    */
-  corefGroups: CoreferenceGroup[] = [];
+  corefGroups: CoreferenceGroup[];
 
   /**
    * 문장을 만듭니다.
@@ -2280,6 +2292,7 @@ export class Sentence extends ImmutableArray<Word> {
         })
       );
       super(words, 'Word');
+
       writeonlyonce(this, undefined, 'syntaxTree');
       replaceableifempty(this, 'dependencies', 'roles', 'entities', 'corefGroups');
 
