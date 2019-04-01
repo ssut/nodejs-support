@@ -16,7 +16,8 @@
   "types": "./lib/index.d.ts",
   "scripts": {
     "test": "jest",
-    "build": "npx tsc",
+    "build:clean": "npx rimraf lib",
+    "build": "npx tsc -p tsconfig.build.json",
     "jsdoc": "npx rimraf docs/* && npx jsdoc -c .jsdoc.json && git add docs/*"
   },
   "licenses": [
